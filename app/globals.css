@@ -13,6 +13,6 @@ body,
   height: 100%;
   width: 100%;
   @apply text-zinc-900;
-  @apply bg-zinc-50;
+  @apply bg-white;
   @apply text-base;
 }

@@ -1,12 +1,15 @@
 import React from 'react'
+import Navbar from '@/app/(components)/Navbar';
+import Sidebar from '@/app/(components)/Sidebar';
 
 const dashboardWrapper = ({children}: {children: React.ReactNode}) => {
   return (
-    <div className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+    <div className="flex min-h-screen w-full bg-white">
     {/* Sidebar */}
-    <main className={'flex w-full flex-col bg-grey-50 dark:bg-dark-bg md:pl-64'}
-    >
+    <Sidebar />
+    <main className={'flex min-h-screen w-full flex-col md:pl-64'}>
       {/* Navbar exists in the sidebar */}
+      <Navbar />
       {children}
     </main>
     </div>
