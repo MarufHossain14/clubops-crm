@@ -2,7 +2,7 @@ import React from 'react'
 import Navbar from '@/app/(components)/Navbar';
 import Sidebar from '@/app/(components)/Sidebar';
 
-const dashboardWrapper = ({children}: {children: React.ReactNode}) => {
+const dashboardlayout = ({children}: {children: React.ReactNode}) => {
   return (
     <div className="flex min-h-screen w-full bg-white">
     {/* Sidebar */}
@@ -15,5 +15,7 @@ const dashboardWrapper = ({children}: {children: React.ReactNode}) => {
     </div>
   );
 }
+
+const DashboardWrapper = ({children}: {children: React.ReactNode})
 
 export default dashboardWrapper;
