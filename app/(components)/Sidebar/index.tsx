@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Icon, Lock, LucideIcon, Home, X } from 'lucide-react'
+import { Icon, Lock, LucideIcon, Home, X, Search, Briefcase, Settings, User, Users, Users2 } from 'lucide-react'
 import { usePathname } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/app/redux';
 import Link from 'next/link';
@@ -51,6 +51,11 @@ const Sidebar = () => {
         {/* Links for navbar */}
         <nav className='z-10 w-full'>
           <SidebarLink icon={Home} label="Home" href="/"/>
+          <SidebarLink icon={Briefcase} label="Timeline" href="/timeline"/>
+          <SidebarLink icon={Search} label="Search" href="/search"/>
+          <SidebarLink icon={Settings} label="Settings" href="/settings"/>
+          <SidebarLink icon={User} label="Users" href="/users"/>
+          <SidebarLink icon={Users2} label="Teams" href="/teams"/>
         </nav>
       </div>
     </div>
@@ -76,7 +81,7 @@ const SidebarLink =({
 
   return(
     <Link href={href} className="w-full">
-      <div className={`relative flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${isActive ? "bg-gray-100 dark:bg-gray-600" : ""} ${isSidebarCollapsed ? "justify-center" : ""}`}
+      <div className={`relative flex cursor-pointer items-center transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${isActive ? "bg-gray-100 dark:bg-gray-600" : ""} ${isSidebarCollapsed ? "justify-center px-3 py-3" : "justify-start gap-3 px-8 py-3"}`}
       >
         {isActive && (
           <div className="absolute left-0 top-0 h-full w-[5px] bg-blue-200"/>
