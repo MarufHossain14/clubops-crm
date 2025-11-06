@@ -1,11 +1,9 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { Search, Settings } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/app/redux';
-import { setIsSidebarCollapsed } from '@/state';
-import { Menu } from 'lucide-react';
 import { setIsDarkMode } from '@/state';
 import { Sun, Moon } from 'lucide-react';
 
@@ -13,7 +11,6 @@ import { Sun, Moon } from 'lucide-react';
 const Navbar = () => {
 
   const dispatch = useAppDispatch();
-  const isSidebarCollapsed = useAppSelector((state) => state.global.isSidebarCollapsed);
   const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
 
   const handleDarkModeToggle = () => {
@@ -24,14 +21,6 @@ const Navbar = () => {
     <div className="flex items-center justify-between bg-white dark:bg-gray-800 px-4 py-3">
       {/* This is where the search bar exists */}
       <div className="flex items-center gap-8">
-        {!isSidebarCollapsed ? null : (
-          <button onClick={() => dispatch(setIsSidebarCollapsed(!isSidebarCollapsed))}>
-            <Menu className="h-8 w-8 text-gray-700 dark:text-white" />
-
-          </button>
-
-        )}
-
         <div className="relative flex w-[200px]">
           <Search className="absolute left-[4px] top-1/2 mr-2 h-5 w-5 -translate-y-1/2 transform cursor-pointer text-black dark:text-white" />
           <input
