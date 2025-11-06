@@ -1,0 +1,37 @@
+[
+  {
+    "teamName": "Quantum Innovations",
+    "productOwnerUserId": 11,
+    "projectManagerUserId": 2,
+    "id": 1,
+    "createdAt": "2024-09-01T00:00:00Z"
+  },
+  {
+    "teamName": "Nebula Research",
+    "productOwnerUserId": 13,
+    "projectManagerUserId": 4,
+    "id": 2,
+    "createdAt": "2024-09-01T00:00:00Z"
+  },
+  {
+    "teamName": "Orion Solutions",
+    "productOwnerUserId": 15,
+    "projectManagerUserId": 6,
+    "id": 3,
+    "createdAt": "2024-09-01T00:00:00Z"
+  },
+  {
+    "teamName": "Krypton Developments",
+    "productOwnerUserId": 17,
+    "projectManagerUserId": 8,
+    "id": 4,
+    "createdAt": "2024-09-01T00:00:00Z"
+  },
+  {
+    "teamName": "Zenith Technologies",
+    "productOwnerUserId": 19,
+    "projectManagerUserId": 10,
+    "id": 5,
+    "createdAt": "2024-09-01T00:00:00Z"
+  }
+]

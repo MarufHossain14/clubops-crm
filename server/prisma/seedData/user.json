@@ -1,0 +1,162 @@
+[
+  {
+    "username": "AliceJones",
+    "teamId": 1,
+    "profilePictureUrl": "p1.jpeg",
+    "cognitoId": "123e4567-e89b-12d3-a456-426614174001",
+    "id": 1,
+    "email": "alicejones@example.com"
+  },
+  {
+    "username": "BobSmith",
+    "teamId": 2,
+    "profilePictureUrl": "p2.jpeg",
+    "cognitoId": "123e4567-e89b-12d3-a456-426614174002",
+    "id": 2,
+    "email": "bobsmith@example.com"
+  },
+  {
+    "username": "CarolWhite",
+    "teamId": 3,
+    "profilePictureUrl": "p3.jpeg",
+    "cognitoId": "123e4567-e89b-12d3-a456-426614174003",
+    "id": 3,
+    "email": "carolwhite@example.com"
+  },
+  {
+    "username": "DaveBrown",
+    "teamId": 4,
+    "profilePictureUrl": "p4.jpeg",
+    "cognitoId": "213b7530-1031-70e0-67e9-fe0805e18fb3",
+    "id": 4,
+    "email": "davebrown@example.com"
+  },
+  {
+    "username": "EveClark",
+    "teamId": 5,
+    "profilePictureUrl": "p5.jpeg",
+    "cognitoId": "123e4567-e89b-12d3-a456-426614174005",
+    "id": 5,
+    "email": "eveclark@example.com"
+  },
+  {
+    "username": "FrankWright",
+    "teamId": 1,
+    "profilePictureUrl": "p6.jpeg",
+    "cognitoId": "123e4567-e89b-12d3-a456-426614174006",
+    "id": 6,
+    "email": "frankwright@example.com"
+  },
+  {
+    "username": "GraceHall",
+    "teamId": 2,
+    "profilePictureUrl": "p7.jpeg",
+    "cognitoId": "123e4567-e89b-12d3-a456-426614174007",
+    "id": 7,
+    "email": "gracehall@example.com"
+  },
+  {
+    "username": "HenryAllen",
+    "teamId": 3,
+    "profilePictureUrl": "p8.jpeg",
+    "cognitoId": "123e4567-e89b-12d3-a456-426614174008",
+    "id": 8,
+    "email": "henryallen@example.com"
+  },
+  {
+    "username": "IdaMartin",
+    "teamId": 4,
+    "profilePictureUrl": "p9.jpeg",
+    "cognitoId": "123e4567-e89b-12d3-a456-426614174009",
+    "id": 9,
+    "email": "idamartin@example.com"
+  },
+  {
+    "username": "JohnDoe",
+    "teamId": 5,
+    "profilePictureUrl": "p10.jpeg",
+    "cognitoId": "123e4567-e89b-12d3-a456-426614174010",
+    "id": 10,
+    "email": "johndoe@example.com"
+  },
+  {
+    "username": "LauraAdams",
+    "teamId": 1,
+    "profilePictureUrl": "p11.jpeg",
+    "cognitoId": "123e4567-e89b-12d3-a456-426614174011",
+    "id": 11,
+    "email": "lauraadams@example.com"
+  },
+  {
+    "username": "NormanBates",
+    "teamId": 2,
+    "profilePictureUrl": "p12.jpeg",
+    "cognitoId": "123e4567-e89b-12d3-a456-426614174012",
+    "id": 12,
+    "email": "normanbates@example.com"
+  },
+  {
+    "username": "OliviaPace",
+    "teamId": 3,
+    "profilePictureUrl": "p13.jpeg",
+    "cognitoId": "123e4567-e89b-12d3-a456-426614174013",
+    "id": 13,
+    "email": "oliviapace@example.com"
+  },
+  {
+    "username": "PeterQuill",
+    "teamId": 4,
+    "profilePictureUrl": "p1.jpeg",
+    "cognitoId": "123e4567-e89b-12d3-a456-426614174014",
+    "id": 14,
+    "email": "peterquill@example.com"
+  },
+  {
+    "username": "QuincyAdams",
+    "teamId": 5,
+    "profilePictureUrl": "p2.jpeg",
+    "cognitoId": "123e4567-e89b-12d3-a456-426614174015",
+    "id": 15,
+    "email": "quincyadams@example.com"
+  },
+  {
+    "username": "RachelGreen",
+    "teamId": 1,
+    "profilePictureUrl": "p3.jpeg",
+    "cognitoId": "123e4567-e89b-12d3-a456-426614174016",
+    "id": 16,
+    "email": "rachelgreen@example.com"
+  },
+  {
+    "username": "SteveJobs",
+    "teamId": 2,
+    "profilePictureUrl": "p4.jpeg",
+    "cognitoId": "123e4567-e89b-12d3-a456-426614174017",
+    "id": 17,
+    "email": "stevejobs@example.com"
+  },
+  {
+    "username": "TinaFey",
+    "teamId": 3,
+    "profilePictureUrl": "p5.jpeg",
+    "cognitoId": "123e4567-e89b-12d3-a456-426614174018",
+    "id": 18,
+    "email": "tinafey@example.com"
+  },
+  {
+    "username": "UrsulaMonroe",
+    "teamId": 4,
+    "profilePictureUrl": "p6.jpeg",
+    "cognitoId": "123e4567-e89b-12d3-a456-426614174019",
+    "id": 19,
+    "email": "ursulamonroe@example.com"
+  },
+  {
+    "username": "VictorHugo",
+    "teamId": 5,
+    "profilePictureUrl": "p7.jpeg",
+    "cognitoId": "123e4567-e89b-12d3-a456-426614174020",
+    "id": 20,
+    "email": "victorhugo@example.com"
+  }
+]
