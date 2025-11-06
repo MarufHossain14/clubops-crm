@@ -71,7 +71,10 @@ export const makeStore = () => {
 export type AppStore = ReturnType<typeof makeStore>;
 export type RootState = ReturnType<AppStore["getState"]>;
 export type AppDispatch = AppStore["dispatch"];
-export const useAppDispatch = () => useDispatch<AppDispatch>();
+export const useAppDispatch = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  return dispatch;
+};
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 /* PROVIDER */
@@ -80,7 +83,7 @@ export default function StoreProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const storeRef = useRef<AppStore>();
+  const storeRef = useRef<AppStore>(null);
   if (!storeRef.current) {
     storeRef.current = makeStore();
     setupListeners(storeRef.current.dispatch);

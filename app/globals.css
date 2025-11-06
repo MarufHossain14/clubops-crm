@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 *,
 *::before,
 *::after {
@@ -12,7 +14,14 @@ body,
 .app {
   height: 100%;
   width: 100%;
-  @apply text-zinc-900;
-  @apply bg-white;
-  @apply text-base;
+}
+
+html {
+  background-color: #ffffff;
+  color: #18181b;
+}
+
+html.dark {
+  background-color: #101214;
+  color: #ffffff;
 }
