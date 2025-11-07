@@ -67,14 +67,30 @@ const columns: GridColDef[] = [
 
 const TableView = ({ id, setIsModalNewTaskOpen }: Props) => {
   const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
+  const projectId = Number(id);
   const {
     data: tasks,
     error,
     isLoading,
-  } = useGetTasksQuery({ projectId: Number(id) });
+  } = useGetTasksQuery(
+    { projectId },
+    { skip: isNaN(projectId) || projectId <= 0 }
+  );
 
   if (isLoading) return <div>Loading...</div>;
-  if (error || !tasks) return <div>An error occurred while fetching tasks</div>;
+  if (error || !tasks) {
+    console.error("Error fetching tasks:", error);
+    return (
+      <div className="p-4 text-red-500">
+        <p>An error occurred while fetching tasks</p>
+        <p className="text-sm mt-2">
+          {"status" in error ? `Status: ${error.status}` : ""}
+          {"data" in error && error.data ? JSON.stringify(error.data) : ""}
+          {"error" in error ? String(error.error) : ""}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="h-[540px] w-full px-4 pb-8 xl:px-6">

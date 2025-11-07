@@ -14,96 +14,97 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  userId            Int     @id @default(autoincrement())
-  cognitoId         String  @unique
-  username          String  @unique
-  profilePictureUrl String?
-  teamId            Int?
-
-  authoredTasks   Task[]           @relation("TaskAuthor")
-  assignedTasks   Task[]           @relation("TaskAssignee")
-  taskAssignments TaskAssignment[]
-  attachments     Attachment[]
-  comments        Comment[]
-  team            Team?            @relation(fields: [teamId], references: [id])
+model Org {
+  id        Int       @id @default(autoincrement())
+  name      String
+  createdAt DateTime  @default(now())
+  members   Member[]
+  events    Event[]
+  sponsors  Sponsor[]
 }
 
-model Team {
-  id                   Int           @id @default(autoincrement())
-  teamName             String
-  productOwnerUserId   Int?
-  projectManagerUserId Int?
-  projectTeams         ProjectTeam[]
-  user                 User[]
+model Member {
+  id         Int            @id @default(autoincrement())
+  orgId      Int
+  org        Org            @relation(fields: [orgId], references: [id])
+  fullName   String
+  email      String
+  role       String
+  tags       String[]
+  lastSeenAt DateTime?
+  rsvps      RSVP[]
+  authoredNotes      Note[]           @relation("NoteAuthor")
+  uploadedAttachments Attachment[]    @relation("AttachmentUploader")
+  assignedVolunteerTasks VolunteerTask[] @relation("VolunteerTaskAssignee")
 }
 
-model Project {
-  id           Int           @id @default(autoincrement())
-  name         String
-  description  String?
-  startDate    DateTime?
-  endDate      DateTime?
-  tasks        Task[]
-  projectTeams ProjectTeam[]
+model Event {
+  id           Int            @id @default(autoincrement())
+  orgId        Int
+  org          Org            @relation(fields: [orgId], references: [id])
+  title        String
+  startsAt     DateTime
+  endsAt       DateTime
+  location     String?
+  status       String
+  capacity     Int?
+  rsvps        RSVP[]
+  volunteerTasks VolunteerTask[]
 }
 
-model ProjectTeam {
+model RSVP {
   id        Int     @id @default(autoincrement())
-  teamId    Int
-  projectId Int
-  team      Team    @relation(fields: [teamId], references: [id])
-  project   Project @relation(fields: [projectId], references: [id])
+  eventId   Int
+  memberId  Int
+  status    String
+  checkedIn Boolean @default(false)
+  event     Event   @relation(fields: [eventId], references: [id])
+  member    Member  @relation(fields: [memberId], references: [id])
 }
 
-model Task {
-  id             Int       @id @default(autoincrement())
-  title          String
-  description    String?
-  status         String?
-  priority       String?
-  tags           String?
-  startDate      DateTime?
-  dueDate        DateTime?
-  points         Int?
-  projectId      Int
-  authorUserId   Int
-  assignedUserId Int?
-
-  project         Project          @relation(fields: [projectId], references: [id])
-  author          User             @relation("TaskAuthor", fields: [authorUserId], references: [userId])
-  assignee        User?            @relation("TaskAssignee", fields: [assignedUserId], references: [userId])
-  taskAssignments TaskAssignment[]
-  attachments     Attachment[]
-  comments        Comment[]
+model Sponsor {
+  id           Int     @id @default(autoincrement())
+  orgId        Int
+  org          Org     @relation(fields: [orgId], references: [id])
+  name         String
+  contactEmail String?
+  tier         String?
+  stage        String
+  pledged      Decimal? @db.Decimal(10, 2)
+  received     Decimal? @db.Decimal(10, 2)
 }
 
-model TaskAssignment {
-  id     Int @id @default(autoincrement())
-  userId Int
-  taskId Int
+model VolunteerTask {
+  id               Int          @id @default(autoincrement())
+  orgId            Int
+  eventId          Int
+  title            String
+  status           String
+  dueAt            DateTime?
+  assigneeMemberId Int?
+  event            Event        @relation(fields: [eventId], references: [id])
+  assignee         Member?      @relation("VolunteerTaskAssignee", fields: [assigneeMemberId], references: [id])
+  notes            Note[]
+  attachments      Attachment[]
+}
 
-  user User @relation(fields: [userId], references: [userId])
-  task Task @relation(fields: [taskId], references: [id])
+model Note {
+  id              Int           @id @default(autoincrement())
+  authorMemberId  Int
+  volunteerTaskId Int?
+  content         String
+  createdAt       DateTime      @default(now())
+  author          Member        @relation("NoteAuthor", fields: [authorMemberId], references: [id])
+  volunteerTask   VolunteerTask? @relation(fields: [volunteerTaskId], references: [id])
 }
 
 model Attachment {
-  id           Int     @id @default(autoincrement())
-  fileURL      String
-  fileName     String?
-  taskId       Int
-  uploadedById Int
-
-  task       Task @relation(fields: [taskId], references: [id])
-  uploadedBy User @relation(fields: [uploadedById], references: [userId])
-}
-
-model Comment {
-  id     Int    @id @default(autoincrement())
-  text   String
-  taskId Int
-  userId Int
-
-  task Task @relation(fields: [taskId], references: [id])
-  user User @relation(fields: [userId], references: [userId])
+  id                 Int           @id @default(autoincrement())
+  volunteerTaskId    Int?
+  uploadedByMemberId Int?
+  fileName           String
+  fileUrl            String
+  uploadedAt         DateTime      @default(now())
+  volunteerTask      VolunteerTask? @relation(fields: [volunteerTaskId], references: [id])
+  uploadedBy         Member?       @relation("AttachmentUploader", fields: [uploadedByMemberId], references: [id])
 }

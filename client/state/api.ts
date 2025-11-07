@@ -3,10 +3,16 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export interface Project {
   id: number;
-  name: string;
-  description?: string;
-  startDate?: string;
-  endDate?: string;
+  title: string;
+  startsAt: string;
+  endsAt: string;
+  location?: string;
+  status: string;
+  capacity?: number;
+  orgId: number;
+  org?: Org;
+  rsvps?: RSVP[];
+  volunteerTasks?: Task[];
 }
 
 export enum Priority {
@@ -25,46 +31,65 @@ export enum Status {
 }
 
 export interface User {
-  userId?: number;
-  username: string;
+  id: number;
+  fullName: string;
   email: string;
-  profilePictureUrl?: string;
-  cognitoId?: string;
-  teamId?: number;
+  role: string;
+  tags: string[];
+  orgId: number;
+  lastSeenAt?: string;
+  org?: Org;
 }
 
 export interface Attachment {
   id: number;
-  fileURL: string;
+  fileUrl: string;
   fileName: string;
-  taskId: number;
-  uploadedById: number;
+  volunteerTaskId?: number;
+  uploadedByMemberId?: number;
+  uploadedAt: string;
 }
 
 export interface Task {
   id: number;
   title: string;
-  description?: string;
-  status?: Status;
-  priority?: Priority;
-  tags?: string;
-  startDate?: string;
-  dueDate?: string;
-  points?: number;
-  projectId: number;
-  authorUserId?: number;
-  assignedUserId?: number;
-
-  author?: User;
+  status: string;
+  dueAt?: string;
+  eventId: number;
+  orgId: number;
+  assigneeMemberId?: number;
+  event?: Project;
   assignee?: User;
-  comments?: Comment[];
+  notes?: Note[];
   attachments?: Attachment[];
 }
 
+export interface Org {
+  id: number;
+  name: string;
+  createdAt: string;
+}
+
+export interface RSVP {
+  id: number;
+  eventId: number;
+  memberId: number;
+  status: string;
+  checkedIn: boolean;
+}
+
+export interface Note {
+  id: number;
+  authorMemberId: number;
+  volunteerTaskId?: number;
+  content: string;
+  createdAt: string;
+}
+
 export interface SearchResults {
-  tasks?: Task[];
-  projects?: Project[];
-  users?: User[];
+  volunteerTasks?: Task[];
+  events?: Project[];
+  members?: User[];
 }
 
 export interface Team {
@@ -76,7 +101,7 @@ export interface Team {
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
+    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000',
     prepareHeaders: async (headers) => {
       // AWS Amplify auth commented out
       // const session = await fetchAuthSession();
@@ -122,19 +147,19 @@ export const api = createApi({
       }),
       invalidatesTags: ["Projects"],
     }),
-    getTasks: build.query<Task[], { projectId: number }>({
-      query: ({ projectId }) => `tasks?projectId=${projectId}`,
+    getTasks: build.query<Task[], { eventId: number }>({
+      query: ({ eventId }) => `tasks?eventId=${eventId}`,
       providesTags: (result) =>
         result
           ? result.map(({ id }) => ({ type: "Tasks" as const, id }))
           : [{ type: "Tasks" as const }],
     }),
     getTasksByUser: build.query<Task[], number>({
-      query: (userId) => `tasks/user/${userId}`,
-      providesTags: (result, error, userId) =>
+      query: (memberId) => `tasks/member/${memberId}`,
+      providesTags: (result, error, memberId) =>
         result
           ? result.map(({ id }) => ({ type: "Tasks", id }))
-          : [{ type: "Tasks", id: userId }],
+          : [{ type: "Tasks", id: memberId }],
     }),
     createTask: build.mutation<Task, Partial<Task>>({
       query: (task) => ({
@@ -163,7 +188,7 @@ export const api = createApi({
       providesTags: ["Teams"],
     }),
     search: build.query<SearchResults, string>({
-      query: (query) => `search?query=${query}`,
+      query: (query) => `search?query=${encodeURIComponent(query)}`,
     }),
   }),
 });

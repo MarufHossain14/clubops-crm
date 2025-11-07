@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "orgId": 1,
+    "name": "Campus Bookstore",
+    "contactEmail": "contact+1@campusbookstore.com",
+    "tier": "Gold",
+    "stage": "NEGOTIATING",
+    "pledged": 1500,
+    "received": 1500
+  },
+  {
+    "id": 2,
+    "orgId": 2,
+    "name": "Local Bakery",
+    "contactEmail": "contact+2@localbakery.com",
+    "tier": "Bronze",
+    "stage": "NEGOTIATING",
+    "pledged": 1500,
+    "received": 1000
+  },
+  {
+    "id": 3,
+    "orgId": 3,
+    "name": "TechHub Waterloo",
+    "contactEmail": "contact+3@techhubwaterloo.com",
+    "tier": "Bronze",
+    "stage": "WON",
+    "pledged": 750,
+    "received": 750
+  },
+  {
+    "id": 4,
+    "orgId": 4,
+    "name": "Fitness First",
+    "contactEmail": "contact+4@fitnessfirst.com",
+    "tier": "Bronze",
+    "stage": "LEAD",
+    "pledged": 750,
+    "received": 750
+  },
+  {
+    "id": 5,
+    "orgId": 5,
+    "name": "Spark Printing",
+    "contactEmail": "contact+5@sparkprinting.com",
+    "tier": "Silver",
+    "stage": "WON",
+    "pledged": 500,
+    "received": 500
+  },
+  {
+    "id": 6,
+    "orgId": 1,
+    "name": "GreenBite",
+    "contactEmail": "contact+6@greenbite.com",
+    "tier": "Silver",
+    "stage": "WON",
+    "pledged": 1500,
+    "received": 1500
+  }
+]

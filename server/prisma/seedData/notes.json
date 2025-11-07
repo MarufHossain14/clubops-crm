@@ -1,0 +1,177 @@
+[
+  {
+    "id": 1,
+    "authorMemberId": 2,
+    "volunteerTaskId": 1,
+    "content": "We need to update this design to include new specifications.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 2,
+    "authorMemberId": 4,
+    "volunteerTaskId": 2,
+    "content": "Can we meet to discuss the navigation algorithm updates?",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 3,
+    "authorMemberId": 6,
+    "volunteerTaskId": 3,
+    "content": "This energy solution looks promising, but needs more research.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 4,
+    "authorMemberId": 8,
+    "volunteerTaskId": 4,
+    "content": "Let's revise the software development workflow to include agile methodologies.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 5,
+    "authorMemberId": 10,
+    "volunteerTaskId": 5,
+    "content": "We should consider newer AI models for better accuracy.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 6,
+    "authorMemberId": 12,
+    "volunteerTaskId": 6,
+    "content": "Product testing needs to be more rigorous.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 7,
+    "authorMemberId": 14,
+    "volunteerTaskId": 7,
+    "content": "Optimization algorithms are not yet efficient.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 8,
+    "authorMemberId": 16,
+    "volunteerTaskId": 8,
+    "content": "Database overhaul could impact current operations negatively.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 9,
+    "authorMemberId": 18,
+    "volunteerTaskId": 9,
+    "content": "Infrastructure upgrades must be done during low traffic hours.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 10,
+    "authorMemberId": 20,
+    "volunteerTaskId": 10,
+    "content": "Security measures need to be enhanced to prevent data breaches.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 11,
+    "authorMemberId": 1,
+    "volunteerTaskId": 11,
+    "content": "Consider using more robust training datasets for AI.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 12,
+    "authorMemberId": 2,
+    "volunteerTaskId": 12,
+    "content": "Server security update meeting scheduled for next week.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 13,
+    "authorMemberId": 3,
+    "volunteerTaskId": 13,
+    "content": "UX redesign has been well received in initial user tests.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 14,
+    "authorMemberId": 4,
+    "volunteerTaskId": 14,
+    "content": "Data analytics implementation needs to account for real-time processing delays.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 15,
+    "authorMemberId": 5,
+    "volunteerTaskId": 15,
+    "content": "Encryption project needs to align with international security standards.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 16,
+    "authorMemberId": 6,
+    "volunteerTaskId": 16,
+    "content": "Review cloud storage optimization strategies in Q3 meeting.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 17,
+    "authorMemberId": 7,
+    "volunteerTaskId": 17,
+    "content": "Hardware compatibility tests to include newer device models.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 18,
+    "authorMemberId": 8,
+    "volunteerTaskId": 18,
+    "content": "Visualization tools to support both 2D and 3D data representations.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 19,
+    "authorMemberId": 9,
+    "volunteerTaskId": 19,
+    "content": "IoT device prototypes to undergo extensive field testing.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 20,
+    "authorMemberId": 10,
+    "volunteerTaskId": 20,
+    "content": "Legacy system upgrade to start with backend databases.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 21,
+    "authorMemberId": 1,
+    "volunteerTaskId": 21,
+    "content": "Network security framework should prioritize threat detection improvements.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 22,
+    "authorMemberId": 2,
+    "volunteerTaskId": 22,
+    "content": "Application deployment strategies to include Docker integration.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 23,
+    "authorMemberId": 3,
+    "volunteerTaskId": 23,
+    "content": "Market analysis should cover competitive product landscapes.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 24,
+    "authorMemberId": 4,
+    "volunteerTaskId": 24,
+    "content": "Feedback mechanisms to utilize adaptive questioning techniques.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  },
+  {
+    "id": 25,
+    "authorMemberId": 5,
+    "volunteerTaskId": 25,
+    "content": "API integration must ensure data privacy compliance.",
+    "createdAt": "2025-10-22T10:00:00Z"
+  }
+]

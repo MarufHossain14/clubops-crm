@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Priority,
   Project,
   Task,
   useGetProjectsQuery,
@@ -29,8 +28,7 @@ import { dataGridClassNames, dataGridSxStyles } from "@/lib/utils";
 const taskColumns: GridColDef[] = [
   { field: "title", headerName: "Title", width: 200 },
   { field: "status", headerName: "Status", width: 150 },
-  { field: "priority", headerName: "Priority", width: 150 },
-  { field: "dueDate", headerName: "Due Date", width: 150 },
+  { field: "dueAt", headerName: "Due Date", width: 150 },
 ];
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
@@ -40,7 +38,7 @@ const HomePage = () => {
     data: tasks,
     isLoading: tasksLoading,
     isError: tasksError,
-  } = useGetTasksQuery({ projectId: parseInt("1") });
+  } = useGetTasksQuery({ eventId: parseInt("1") });
   const { data: projects, isLoading: isProjectsLoading } =
     useGetProjectsQuery();
 
@@ -49,32 +47,32 @@ const HomePage = () => {
   if (tasksLoading || isProjectsLoading) return <div>Loading..</div>;
   if (tasksError || !tasks || !projects) return <div>Error fetching data</div>;
 
-  const priorityCount = tasks.reduce(
+  const statusCount = tasks.reduce(
     (acc: Record<string, number>, task: Task) => {
-      const { priority } = task;
-      acc[priority as Priority] = (acc[priority as Priority] || 0) + 1;
-      return acc;
-    },
-    {},
-  );
-
-  const taskDistribution = Object.keys(priorityCount).map((key) => ({
-    name: key,
-    count: priorityCount[key],
-  }));
-
-  const statusCount = projects.reduce(
-    (acc: Record<string, number>, project: Project) => {
-      const status = project.endDate ? "Completed" : "Active";
+      const { status } = task;
       acc[status] = (acc[status] || 0) + 1;
       return acc;
     },
     {},
   );
 
-  const projectStatus = Object.keys(statusCount).map((key) => ({
+  const taskDistribution = Object.keys(statusCount).map((key) => ({
     name: key,
     count: statusCount[key],
+  }));
+
+  const eventStatusCount = projects.reduce(
+    (acc: Record<string, number>, project: Project) => {
+      const status = project.status || "Unknown";
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    },
+    {},
+  );
+
+  const projectStatus = Object.keys(eventStatusCount).map((key) => ({
+    name: key,
+    count: eventStatusCount[key],
   }));
 
   const chartColors = isDarkMode
@@ -97,7 +95,7 @@ const HomePage = () => {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="rounded-lg bg-white p-4 shadow dark:bg-dark-secondary">
           <h3 className="mb-4 text-lg font-semibold dark:text-white">
-            Task Priority Distribution
+            Task Status Distribution
           </h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={taskDistribution}>

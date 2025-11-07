@@ -1,0 +1,102 @@
+[
+  {
+    "id": 1,
+    "orgId": 1,
+    "title": "Apollo",
+    "startsAt": "2025-10-02T00:00:00Z",
+    "endsAt": "2025-10-02T02:00:00Z",
+    "location": "Alumni Field",
+    "status": "PLANNING",
+    "capacity": 150
+  },
+  {
+    "id": 2,
+    "orgId": 1,
+    "title": "Beacon",
+    "startsAt": "2025-10-03T00:00:00Z",
+    "endsAt": "2025-10-03T02:00:00Z",
+    "location": "Athletics Complex",
+    "status": "COMPLETED",
+    "capacity": 100
+  },
+  {
+    "id": 3,
+    "orgId": 1,
+    "title": "Catalyst",
+    "startsAt": "2025-10-04T00:00:00Z",
+    "endsAt": "2025-10-04T02:00:00Z",
+    "location": "Online",
+    "status": "COMPLETED",
+    "capacity": 100
+  },
+  {
+    "id": 4,
+    "orgId": 1,
+    "title": "Delta",
+    "startsAt": "2025-10-05T00:00:00Z",
+    "endsAt": "2025-10-05T02:00:00Z",
+    "location": "SLC 3126",
+    "status": "PUBLISHED",
+    "capacity": 200
+  },
+  {
+    "id": 5,
+    "orgId": 1,
+    "title": "Echo",
+    "startsAt": "2025-10-06T00:00:00Z",
+    "endsAt": "2025-10-06T02:00:00Z",
+    "location": "Alumni Field",
+    "status": "COMPLETED",
+    "capacity": 100
+  },
+  {
+    "id": 6,
+    "orgId": 1,
+    "title": "Foxtrot",
+    "startsAt": "2025-10-07T00:00:00Z",
+    "endsAt": "2025-10-07T02:00:00Z",
+    "location": "Alumni Field",
+    "status": "PLANNING",
+    "capacity": 100
+  },
+  {
+    "id": 7,
+    "orgId": 1,
+    "title": "Golf",
+    "startsAt": "2025-10-08T00:00:00Z",
+    "endsAt": "2025-10-08T02:00:00Z",
+    "location": "Athletics Complex",
+    "status": "PUBLISHED",
+    "capacity": 200
+  },
+  {
+    "id": 8,
+    "orgId": 1,
+    "title": "Hotel",
+    "startsAt": "2025-10-09T00:00:00Z",
+    "endsAt": "2025-10-09T02:00:00Z",
+    "location": "Alumni Field",
+    "status": "PLANNING",
+    "capacity": 100
+  },
+  {
+    "id": 9,
+    "orgId": 1,
+    "title": "India",
+    "startsAt": "2025-10-10T00:00:00Z",
+    "endsAt": "2025-10-10T02:00:00Z",
+    "location": "Online",
+    "status": "COMPLETED",
+    "capacity": 150
+  },
+  {
+    "id": 10,
+    "orgId": 1,
+    "title": "Juliet",
+    "startsAt": "2025-10-11T00:00:00Z",
+    "endsAt": "2025-10-11T02:00:00Z",
+    "location": "SLC 3126",
+    "status": "COMPLETED",
+    "capacity": 200
+  }
+]

@@ -5,52 +5,71 @@ const prisma = new PrismaClient();
 
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
   try {
-    const users = await prisma.user.findMany();
-    res.json(users);
+    const members = await prisma.member.findMany({
+      include: {
+        org: true,
+      },
+    });
+    res.json(members);
   } catch (error: any) {
     res
       .status(500)
-      .json({ message: `Error retrieving users: ${error.message}` });
+      .json({ message: `Error retrieving members: ${error.message}` });
   }
 };
 
 export const getUser = async (req: Request, res: Response): Promise<void> => {
-  const { cognitoId } = req.params;
+  const { memberId } = req.params;
   try {
-    const user = await prisma.user.findUnique({
+    const member = await prisma.member.findUnique({
       where: {
-        cognitoId: cognitoId,
+        id: Number(memberId),
+      },
+      include: {
+        org: true,
+        rsvps: {
+          include: {
+            event: true,
+          },
+        },
       },
     });
 
-    res.json(user);
+    res.json(member);
   } catch (error: any) {
     res
       .status(500)
-      .json({ message: `Error retrieving user: ${error.message}` });
+      .json({ message: `Error retrieving member: ${error.message}` });
   }
 };
 
 export const postUser = async (req: Request, res: Response) => {
   try {
     const {
-      username,
-      cognitoId,
-      profilePictureUrl = "i1.jpg",
-      teamId = 1,
+      fullName,
+      email,
+      role,
+      tags = [],
+      orgId,
+      lastSeenAt,
     } = req.body;
-    const newUser = await prisma.user.create({
+    const newMember = await prisma.member.create({
       data: {
-        username,
-        cognitoId,
-        profilePictureUrl,
-        teamId,
+        fullName,
+        email,
+        role,
+        tags,
+        orgId,
+        lastSeenAt: lastSeenAt ? new Date(lastSeenAt) : null,
+      },
+      include: {
+        org: true,
       },
     });
-    res.json({ message: "User Created Successfully", newUser });
+    res.json({ message: "Member Created Successfully", newMember });
   } catch (error: any) {
     res
       .status(500)
-      .json({ message: `Error retrieving users: ${error.message}` });
+      .json({ message: `Error creating member: ${error.message}` });
   }
 };

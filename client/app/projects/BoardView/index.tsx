@@ -15,11 +15,16 @@ type BoardProps = {
 const taskStatus = ["To Do", "Work In Progress", "Under Review", "Completed"];
 
 const BoardView = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
+  const projectId = Number(id);
   const {
     data: tasks,
     isLoading,
     error,
-  } = useGetTasksQuery({ projectId: Number(id) });
+    isError,
+  } = useGetTasksQuery(
+    { projectId },
+    { skip: isNaN(projectId) || projectId <= 0 }
+  );
   const [updateTaskStatus] = useUpdateTaskStatusMutation();
 
   const moveTask = (taskId: number, toStatus: string) => {
@@ -27,7 +32,19 @@ const BoardView = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
   };
 
   if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>An error occurred while fetching tasks</div>;
+  if (error) {
+    console.error("Error fetching tasks:", error);
+    return (
+      <div className="p-4 text-red-500">
+        <p>An error occurred while fetching tasks</p>
+        <p className="text-sm mt-2">
+          {"status" in error ? `Status: ${error.status}` : ""}
+          {"data" in error && error.data ? JSON.stringify(error.data) : ""}
+          {"error" in error ? String(error.error) : ""}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <DndProvider backend={HTML5Backend}>

@@ -4,24 +4,38 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export const getTasks = async (req: Request, res: Response): Promise<void> => {
-  const { projectId } = req.query;
+  const { eventId } = req.query;
+
+  // Validate eventId
+  if (!eventId) {
+    res.status(400).json({ message: "eventId is required" });
+    return;
+  }
+
+  const eventIdNum = Number(eventId);
+  if (isNaN(eventIdNum)) {
+    res.status(400).json({ message: "eventId must be a valid number" });
+    return;
+  }
+
   try {
-    const tasks = await prisma.task.findMany({
+    const tasks = await prisma.volunteerTask.findMany({
       where: {
-        projectId: Number(projectId),
+        eventId: eventIdNum,
       },
       include: {
-        author: true,
         assignee: true,
-        comments: true,
+        event: true,
+        notes: true,
         attachments: true,
       },
     });
     res.json(tasks);
   } catch (error: any) {
+    console.error("Error retrieving volunteer tasks:", error);
     res
       .status(500)
-      .json({ message: `Error retrieving tasks: ${error.message}` });
+      .json({ message: `Error retrieving volunteer tasks: ${error.message}` });
   }
 };
 
@@ -31,38 +45,32 @@ export const createTask = async (
 ): Promise<void> => {
   const {
     title,
-    description,
     status,
-    priority,
-    tags,
-    startDate,
-    dueDate,
-    points,
-    projectId,
-    authorUserId,
-    assignedUserId,
+    dueAt,
+    eventId,
+    orgId,
+    assigneeMemberId,
   } = req.body;
   try {
-    const newTask = await prisma.task.create({
+    const newTask = await prisma.volunteerTask.create({
       data: {
         title,
-        description,
         status,
-        priority,
-        tags,
-        startDate,
-        dueDate,
-        points,
-        projectId,
-        authorUserId,
-        assignedUserId,
+        dueAt: dueAt ? new Date(dueAt) : null,
+        eventId,
+        orgId,
+        assigneeMemberId: assigneeMemberId || null,
+      },
+      include: {
+        assignee: true,
+        event: true,
       },
     });
     res.status(201).json(newTask);
   } catch (error: any) {
     res
       .status(500)
-      .json({ message: `Error creating a task: ${error.message}` });
+      .json({ message: `Error creating a volunteer task: ${error.message}` });
   }
 };
 
@@ -73,17 +81,21 @@ export const updateTaskStatus = async (
   const { taskId } = req.params;
   const { status } = req.body;
   try {
-    const updatedTask = await prisma.task.update({
+    const updatedTask = await prisma.volunteerTask.update({
       where: {
         id: Number(taskId),
       },
       data: {
         status: status,
       },
+      include: {
+        assignee: true,
+        event: true,
+      },
     });
     res.json(updatedTask);
   } catch (error: any) {
-    res.status(500).json({ message: `Error updating task: ${error.message}` });
+    res.status(500).json({ message: `Error updating volunteer task: ${error.message}` });
   }
 };
 
@@ -91,24 +103,21 @@ export const getUserTasks = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { userId } = req.params;
+  const { memberId } = req.params;
   try {
-    const tasks = await prisma.task.findMany({
+    const tasks = await prisma.volunteerTask.findMany({
       where: {
-        OR: [
-          { authorUserId: Number(userId) },
-          { assignedUserId: Number(userId) },
-        ],
+        assigneeMemberId: Number(memberId),
       },
       include: {
-        author: true,
         assignee: true,
+        event: true,
       },
     });
     res.json(tasks);
   } catch (error: any) {
     res
       .status(500)
-      .json({ message: `Error retrieving user's tasks: ${error.message}` });
+      .json({ message: `Error retrieving member's volunteer tasks: ${error.message}` });
   }
 };

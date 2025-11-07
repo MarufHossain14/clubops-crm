@@ -6,6 +6,6 @@ const router = Router();
 
 router.get("/", getUsers);
 router.post("/", postUser);
-router.get("/:cognitoId", getUser);
+router.get("/:memberId", getUser);
 
 export default router;

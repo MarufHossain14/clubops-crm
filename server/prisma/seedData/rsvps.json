@@ -1,0 +1,254 @@
+[
+  {
+    "id": 1,
+    "eventId": 1,
+    "memberId": 16,
+    "status": "MAYBE",
+    "checkedIn": false
+  },
+  {
+    "id": 2,
+    "eventId": 1,
+    "memberId": 1,
+    "status": "ATTENDED",
+    "checkedIn": false
+  },
+  {
+    "id": 3,
+    "eventId": 1,
+    "memberId": 6,
+    "status": "NOT_GOING",
+    "checkedIn": true
+  },
+  {
+    "id": 4,
+    "eventId": 1,
+    "memberId": 11,
+    "status": "MAYBE",
+    "checkedIn": false
+  },
+  {
+    "id": 5,
+    "eventId": 2,
+    "memberId": 1,
+    "status": "MAYBE",
+    "checkedIn": false
+  },
+  {
+    "id": 6,
+    "eventId": 2,
+    "memberId": 16,
+    "status": "GOING",
+    "checkedIn": false
+  },
+  {
+    "id": 7,
+    "eventId": 2,
+    "memberId": 11,
+    "status": "ATTENDED",
+    "checkedIn": false
+  },
+  {
+    "id": 8,
+    "eventId": 3,
+    "memberId": 11,
+    "status": "NOT_GOING",
+    "checkedIn": false
+  },
+  {
+    "id": 9,
+    "eventId": 3,
+    "memberId": 16,
+    "status": "GOING",
+    "checkedIn": false
+  },
+  {
+    "id": 10,
+    "eventId": 3,
+    "memberId": 1,
+    "status": "ATTENDED",
+    "checkedIn": true
+  },
+  {
+    "id": 11,
+    "eventId": 3,
+    "memberId": 6,
+    "status": "ATTENDED",
+    "checkedIn": true
+  },
+  {
+    "id": 12,
+    "eventId": 4,
+    "memberId": 11,
+    "status": "NOT_GOING",
+    "checkedIn": true
+  },
+  {
+    "id": 13,
+    "eventId": 4,
+    "memberId": 16,
+    "status": "MAYBE",
+    "checkedIn": false
+  },
+  {
+    "id": 14,
+    "eventId": 4,
+    "memberId": 1,
+    "status": "MAYBE",
+    "checkedIn": true
+  },
+  {
+    "id": 15,
+    "eventId": 4,
+    "memberId": 6,
+    "status": "NOT_GOING",
+    "checkedIn": false
+  },
+  {
+    "id": 16,
+    "eventId": 5,
+    "memberId": 1,
+    "status": "MAYBE",
+    "checkedIn": true
+  },
+  {
+    "id": 17,
+    "eventId": 5,
+    "memberId": 6,
+    "status": "MAYBE",
+    "checkedIn": true
+  },
+  {
+    "id": 18,
+    "eventId": 5,
+    "memberId": 11,
+    "status": "GOING",
+    "checkedIn": false
+  },
+  {
+    "id": 19,
+    "eventId": 6,
+    "memberId": 6,
+    "status": "MAYBE",
+    "checkedIn": false
+  },
+  {
+    "id": 20,
+    "eventId": 6,
+    "memberId": 1,
+    "status": "ATTENDED",
+    "checkedIn": true
+  },
+  {
+    "id": 21,
+    "eventId": 6,
+    "memberId": 16,
+    "status": "MAYBE",
+    "checkedIn": false
+  },
+  {
+    "id": 22,
+    "eventId": 7,
+    "memberId": 11,
+    "status": "MAYBE",
+    "checkedIn": true
+  },
+  {
+    "id": 23,
+    "eventId": 7,
+    "memberId": 6,
+    "status": "GOING",
+    "checkedIn": false
+  },
+  {
+    "id": 24,
+    "eventId": 7,
+    "memberId": 16,
+    "status": "GOING",
+    "checkedIn": true
+  },
+  {
+    "id": 25,
+    "eventId": 7,
+    "memberId": 1,
+    "status": "MAYBE",
+    "checkedIn": true
+  },
+  {
+    "id": 26,
+    "eventId": 8,
+    "memberId": 1,
+    "status": "GOING",
+    "checkedIn": false
+  },
+  {
+    "id": 27,
+    "eventId": 8,
+    "memberId": 16,
+    "status": "GOING",
+    "checkedIn": true
+  },
+  {
+    "id": 28,
+    "eventId": 8,
+    "memberId": 11,
+    "status": "NOT_GOING",
+    "checkedIn": false
+  },
+  {
+    "id": 29,
+    "eventId": 9,
+    "memberId": 6,
+    "status": "ATTENDED",
+    "checkedIn": false
+  },
+  {
+    "id": 30,
+    "eventId": 9,
+    "memberId": 11,
+    "status": "MAYBE",
+    "checkedIn": true
+  },
+  {
+    "id": 31,
+    "eventId": 9,
+    "memberId": 16,
+    "status": "GOING",
+    "checkedIn": false
+  },
+  {
+    "id": 32,
+    "eventId": 9,
+    "memberId": 1,
+    "status": "NOT_GOING",
+    "checkedIn": false
+  },
+  {
+    "id": 33,
+    "eventId": 10,
+    "memberId": 16,
+    "status": "GOING",
+    "checkedIn": false
+  },
+  {
+    "id": 34,
+    "eventId": 10,
+    "memberId": 11,
+    "status": "NOT_GOING",
+    "checkedIn": true
+  },
+  {
+    "id": 35,
+    "eventId": 10,
+    "memberId": 1,
+    "status": "MAYBE",
+    "checkedIn": true
+  },
+  {
+    "id": 36,
+    "eventId": 10,
+    "memberId": 6,
+    "status": "MAYBE",
+    "checkedIn": false
+  }
+]

@@ -5,32 +5,38 @@ const prisma = new PrismaClient();
 
 export const getTeams = async (req: Request, res: Response): Promise<void> => {
   try {
-    const teams = await prisma.team.findMany();
+    const orgs = await prisma.org.findMany({
+      include: {
+        members: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            role: true,
+          },
+        },
+        events: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+          },
+        },
+        sponsors: {
+          select: {
+            id: true,
+            name: true,
+            tier: true,
+            stage: true,
+          },
+        },
+      },
+    });
 
-    const teamsWithUsernames = await Promise.all(
-      teams.map(async (team: any) => {
-        const productOwner = await prisma.user.findUnique({
-          where: { userId: team.productOwnerUserId! },
-          select: { username: true },
-        });
-
-        const projectManager = await prisma.user.findUnique({
-          where: { userId: team.projectManagerUserId! },
-          select: { username: true },
-        });
-
-        return {
-          ...team,
-          productOwnerUsername: productOwner?.username,
-          projectManagerUsername: projectManager?.username,
-        };
-      })
-    );
-
-    res.json(teamsWithUsernames);
+    res.json(orgs);
   } catch (error: any) {
     res
       .status(500)
-      .json({ message: `Error retrieving teams: ${error.message}` });
+      .json({ message: `Error retrieving organizations: ${error.message}` });
   }
 };
