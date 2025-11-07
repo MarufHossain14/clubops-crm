@@ -20,13 +20,25 @@ const CustomToolbar = () => (
 );
 
 const columns: GridColDef[] = [
-  { field: "id", headerName: "Team ID", width: 100 },
-  { field: "teamName", headerName: "Team Name", width: 200 },
-  { field: "productOwnerUsername", headerName: "Product Owner", width: 200 },
+  { field: "id", headerName: "Org ID", width: 100 },
+  { field: "name", headerName: "Organization Name", width: 200 },
   {
-    field: "projectManagerUsername",
-    headerName: "Project Manager",
-    width: 200,
+    field: "members",
+    headerName: "Members",
+    width: 150,
+    renderCell: (params) => params.value?.length || 0,
+  },
+  {
+    field: "events",
+    headerName: "Events",
+    width: 150,
+    renderCell: (params) => params.value?.length || 0,
+  },
+  {
+    field: "sponsors",
+    headerName: "Sponsors",
+    width: 150,
+    renderCell: (params) => params.value?.length || 0,
   },
 ];
 
@@ -39,7 +51,7 @@ const Teams = () => {
 
   return (
     <div className="flex w-full flex-col p-8">
-      <Header name="Teams" />
+      <Header name="Organizations" />
       <div style={{ height: 650, width: "100%" }}>
         <DataGrid
           rows={teams || []}

@@ -21,10 +21,10 @@ const Timeline = () => {
   const ganttTasks = useMemo(() => {
     return (
       projects?.map((project) => ({
-        start: new Date(project.startDate as string),
-        end: new Date(project.endDate as string),
-        name: project.name,
-        id: `Project-${project.id}`,
+        start: new Date(project.startsAt),
+        end: new Date(project.endsAt),
+        name: project.title,
+        id: `Event-${project.id}`,
         type: "project" as TaskTypeItems,
         progress: 50,
         isDisabled: false,
@@ -48,7 +48,7 @@ const Timeline = () => {
   return (
     <div className="max-w-full p-8">
       <header className="mb-4 flex items-center justify-between">
-        <Header name="Projects Timeline" />
+        <Header name="Events Timeline" />
         <div className="relative inline-block w-64">
           <select
             className="focus:shadow-outline block w-full appearance-none rounded border border-gray-400 bg-white px-4 py-2 pr-8 leading-tight shadow hover:border-gray-500 focus:outline-none dark:border-dark-secondary dark:bg-dark-secondary dark:text-white"

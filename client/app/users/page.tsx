@@ -10,7 +10,6 @@ import {
   GridToolbarExport,
   GridToolbarFilterButton,
 } from "@mui/x-data-grid";
-import Image from "next/image";
 import { dataGridClassNames, dataGridSxStyles } from "@/lib/utils";
 
 const CustomToolbar = () => (
@@ -21,25 +20,35 @@ const CustomToolbar = () => (
 );
 
 const columns: GridColDef[] = [
-  { field: "userId", headerName: "ID", width: 100 },
-  { field: "username", headerName: "Username", width: 150 },
+  { field: "id", headerName: "ID", width: 100 },
+  { field: "fullName", headerName: "Full Name", width: 200 },
+  { field: "email", headerName: "Email", width: 250 },
+  { field: "role", headerName: "Role", width: 150 },
   {
-    field: "profilePictureUrl",
-    headerName: "Profile Picture",
-    width: 100,
-    renderCell: (params) => (
-      <div className="flex h-full w-full items-center justify-center">
-        <div className="h-9 w-9">
-          <Image
-            src={`https://pm-s3-images.s3.us-east-2.amazonaws.com/${params.value}`}
-            alt={params.row.username}
-            width={100}
-            height={50}
-            className="h-full rounded-full object-cover"
-          />
+    field: "tags",
+    headerName: "Tags",
+    width: 200,
+    renderCell: (params) => {
+      if (!params.value || !Array.isArray(params.value)) return <span>-</span>;
+      return (
+        <div className="flex gap-1">
+          {params.value.map((tag: string, index: number) => (
+            <span key={index} className="rounded bg-blue-100 px-2 py-1 text-xs dark:bg-blue-900">
+              {tag}
+            </span>
+          ))}
         </div>
-      </div>
-    ),
+      );
+    },
+  },
+  {
+    field: "org",
+    headerName: "Organization",
+    width: 200,
+    valueGetter: (params) => {
+      if (!params.row || !params.row.org) return "N/A";
+      return params.row.org.name || "N/A";
+    },
   },
 ];
 
@@ -57,7 +66,7 @@ const Users = () => {
         <DataGrid
           rows={users || []}
           columns={columns}
-          getRowId={(row) => row.userId}
+          getRowId={(row) => row.id}
           pagination
           slots={{
             toolbar: CustomToolbar,

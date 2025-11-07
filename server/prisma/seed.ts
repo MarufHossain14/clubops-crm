@@ -56,6 +56,9 @@ async function main() {
 
   await deleteAllData();
 
+  // Global ID map to track old IDs -> new IDs for all models
+  const globalIdMap: Record<string, Map<number, number>> = {};
+
   for (const fileName of orderedFileNames) {
     const filePath = path.join(dataDirectory, fileName);
 
@@ -69,15 +72,29 @@ async function main() {
     const model: any = prisma[modelName as keyof typeof prisma];
 
     try {
-      for (const raw of jsonData) {
-        const data = transformForModel(modelName, raw);
-        // Use create with explicit id to preserve seed data relationships
-        await model.create({
-          data: {
-            ...data,
-            id: raw.id, // Preserve the ID from seed data
-          }
-        });
+      // Create ID map for this model
+      const idMap = new Map<number, number>();
+      globalIdMap[modelName] = idMap;
+
+      // For orgs, we can set explicit IDs using raw SQL
+      if (modelName === "org") {
+        for (const raw of jsonData) {
+          const data = transformForModel(modelName, raw, globalIdMap);
+          // Use upsert to set explicit ID
+          await model.upsert({
+            where: { id: raw.id },
+            update: {},
+            create: { ...data, id: raw.id },
+          });
+          idMap.set(raw.id, raw.id); // Map old ID to same ID
+        }
+      } else {
+        // For other models, create records and map old IDs to new auto-generated IDs
+        for (const raw of jsonData) {
+          const data = transformForModel(modelName, raw, globalIdMap);
+          const created = await model.create({ data });
+          idMap.set(raw.id, created.id);
+        }
       }
       console.log(`✅ Seeded ${modelName} with ${jsonData.length} records from ${fileName}`);
     } catch (error) {
@@ -89,19 +106,25 @@ async function main() {
   // Reset sequences to start after the highest IDs we inserted
   // This ensures future auto-generated IDs don't conflict
   try {
-    await prisma.$executeRawUnsafe(`
-      SELECT setval(pg_get_serial_sequence('"Org"', 'id'), COALESCE((SELECT MAX(id) FROM "Org"), 1), true);
-      SELECT setval(pg_get_serial_sequence('"Member"', 'id'), COALESCE((SELECT MAX(id) FROM "Member"), 1), true);
-      SELECT setval(pg_get_serial_sequence('"Event"', 'id'), COALESCE((SELECT MAX(id) FROM "Event"), 1), true);
-      SELECT setval(pg_get_serial_sequence('"Sponsor"', 'id'), COALESCE((SELECT MAX(id) FROM "Sponsor"), 1), true);
-      SELECT setval(pg_get_serial_sequence('"RSVP"', 'id'), COALESCE((SELECT MAX(id) FROM "RSVP"), 1), true);
-      SELECT setval(pg_get_serial_sequence('"VolunteerTask"', 'id'), COALESCE((SELECT MAX(id) FROM "VolunteerTask"), 1), true);
-      SELECT setval(pg_get_serial_sequence('"Note"', 'id'), COALESCE((SELECT MAX(id) FROM "Note"), 1), true);
-      SELECT setval(pg_get_serial_sequence('"Attachment"', 'id'), COALESCE((SELECT MAX(id) FROM "Attachment"), 1), true);
-    `);
+    const sequences = [
+      { table: '"Org"', column: 'id' },
+      { table: '"Member"', column: 'id' },
+      { table: '"Event"', column: 'id' },
+      { table: '"Sponsor"', column: 'id' },
+      { table: '"RSVP"', column: 'id' },
+      { table: '"VolunteerTask"', column: 'id' },
+      { table: '"Note"', column: 'id' },
+      { table: '"Attachment"', column: 'id' },
+    ];
+
+    for (const seq of sequences) {
+      await prisma.$executeRawUnsafe(
+        `SELECT setval(pg_get_serial_sequence(${seq.table}, '${seq.column}'), COALESCE((SELECT MAX(id) FROM ${seq.table}), 1), true);`
+      );
+    }
     console.log("✅ Reset database sequences");
   } catch (error) {
-    console.warn("⚠️  Could not reset sequences (this is okay if tables are empty):", error);
+    console.warn("⚠️  Could not reset sequences (this is okay):", error);
   }
 
   console.log("\n🎉 Seed completed successfully!");
@@ -114,11 +137,13 @@ main()
   })
   .finally(async () => await prisma.$disconnect());
 
-function transformForModel(modelName: string, raw: any) {
+function transformForModel(modelName: string, raw: any, globalIdMap?: Record<string, Map<number, number>>) {
   const clone = { ...raw };
 
-  // Preserve IDs from seed data for relation mapping
-  // We'll use create with explicit id values
+  // Remove id field - let Prisma auto-generate (except for orgs which use upsert)
+  delete (clone as any).id;
+
+  // Use globalIdMap to map old IDs to new IDs for relationships
 
   switch (modelName) {
     case "org": {
@@ -134,7 +159,7 @@ function transformForModel(modelName: string, raw: any) {
       if (clone.lastSeenAt) {
         clone.lastSeenAt = new Date(clone.lastSeenAt);
       }
-      // Connect to org
+      // Connect to org (orgId should match the seeded org IDs)
       const orgId = clone.orgId;
       delete clone.orgId;
       clone.org = { connect: { id: orgId } };
@@ -167,14 +192,28 @@ function transformForModel(modelName: string, raw: any) {
       return clone;
     }
 
-    case "rsvp": {
-      // Connect to event and member
+    case "RSVP": {
+      // Connect to event and member using global ID map
       const eventId = clone.eventId;
       const memberId = clone.memberId;
       delete clone.eventId;
       delete clone.memberId;
-      clone.event = { connect: { id: eventId } };
-      clone.member = { connect: { id: memberId } };
+
+      if (globalIdMap) {
+        const eventMap = globalIdMap["event"];
+        const memberMap = globalIdMap["member"];
+        const newEventId = eventMap?.get(eventId);
+        const newMemberId = memberMap?.get(memberId);
+
+        if (newEventId && newMemberId) {
+          clone.event = { connect: { id: newEventId } };
+          clone.member = { connect: { id: newMemberId } };
+        } else {
+          throw new Error(`Could not map IDs for RSVP: eventId=${eventId}->${newEventId}, memberId=${memberId}->${newMemberId}`);
+        }
+      } else {
+        throw new Error("globalIdMap is required for RSVP relationships");
+      }
       return clone;
     }
 
@@ -183,15 +222,37 @@ function transformForModel(modelName: string, raw: any) {
       if (clone.dueAt) {
         clone.dueAt = new Date(clone.dueAt);
       }
-      // Connect to event
+      // Connect to event using global ID map
       const eventId = clone.eventId;
       delete clone.eventId;
-      clone.event = { connect: { id: eventId } };
+
+      if (globalIdMap) {
+        const eventMap = globalIdMap["event"];
+        const newEventId = eventMap?.get(eventId);
+        if (newEventId) {
+          clone.event = { connect: { id: newEventId } };
+        } else {
+          throw new Error(`Could not map eventId ${eventId} for VolunteerTask`);
+        }
+      } else {
+        throw new Error("globalIdMap is required for VolunteerTask relationships");
+      }
+
       // Connect to assignee if present
       if (clone.assigneeMemberId != null) {
         const assigneeMemberId = clone.assigneeMemberId;
         delete clone.assigneeMemberId;
-        clone.assignee = { connect: { id: assigneeMemberId } };
+
+        if (globalIdMap) {
+          const memberMap = globalIdMap["member"];
+          const newMemberId = memberMap?.get(assigneeMemberId);
+          if (newMemberId) {
+            clone.assignee = { connect: { id: newMemberId } };
+          } else {
+            // Assignee is optional, so just skip if not found
+            console.warn(`Could not map assigneeMemberId ${assigneeMemberId} for VolunteerTask, skipping assignee`);
+          }
+        }
       }
       return clone;
     }
@@ -201,15 +262,36 @@ function transformForModel(modelName: string, raw: any) {
       if (clone.createdAt) {
         clone.createdAt = new Date(clone.createdAt);
       }
-      // Connect to author
+      // Connect to author using global ID map
       const authorMemberId = clone.authorMemberId;
       delete clone.authorMemberId;
-      clone.author = { connect: { id: authorMemberId } };
+
+      if (globalIdMap) {
+        const memberMap = globalIdMap["member"];
+        const newMemberId = memberMap?.get(authorMemberId);
+        if (newMemberId) {
+          clone.author = { connect: { id: newMemberId } };
+        } else {
+          throw new Error(`Could not map authorMemberId ${authorMemberId} for Note`);
+        }
+      } else {
+        throw new Error("globalIdMap is required for Note relationships");
+      }
+
       // Connect to volunteerTask if present
       if (clone.volunteerTaskId != null) {
         const volunteerTaskId = clone.volunteerTaskId;
         delete clone.volunteerTaskId;
-        clone.volunteerTask = { connect: { id: volunteerTaskId } };
+
+        if (globalIdMap) {
+          const taskMap = globalIdMap["volunteerTask"];
+          const newTaskId = taskMap?.get(volunteerTaskId);
+          if (newTaskId) {
+            clone.volunteerTask = { connect: { id: newTaskId } };
+          } else {
+            console.warn(`Could not map volunteerTaskId ${volunteerTaskId} for Note, skipping task relation`);
+          }
+        }
       }
       return clone;
     }
@@ -223,13 +305,31 @@ function transformForModel(modelName: string, raw: any) {
       if (clone.volunteerTaskId != null) {
         const volunteerTaskId = clone.volunteerTaskId;
         delete clone.volunteerTaskId;
-        clone.volunteerTask = { connect: { id: volunteerTaskId } };
+
+        if (globalIdMap) {
+          const taskMap = globalIdMap["volunteerTask"];
+          const newTaskId = taskMap?.get(volunteerTaskId);
+          if (newTaskId) {
+            clone.volunteerTask = { connect: { id: newTaskId } };
+          } else {
+            console.warn(`Could not map volunteerTaskId ${volunteerTaskId} for Attachment, skipping task relation`);
+          }
+        }
       }
       // Connect to uploadedBy if present
       if (clone.uploadedByMemberId != null) {
         const uploadedByMemberId = clone.uploadedByMemberId;
         delete clone.uploadedByMemberId;
-        clone.uploadedBy = { connect: { id: uploadedByMemberId } };
+
+        if (globalIdMap) {
+          const memberMap = globalIdMap["member"];
+          const newMemberId = memberMap?.get(uploadedByMemberId);
+          if (newMemberId) {
+            clone.uploadedBy = { connect: { id: newMemberId } };
+          } else {
+            console.warn(`Could not map uploadedByMemberId ${uploadedByMemberId} for Attachment, skipping uploader relation`);
+          }
+        }
       }
       return clone;
     }
@@ -240,13 +340,13 @@ function transformForModel(modelName: string, raw: any) {
 }
 
 function mapFileBaseToModel(base: string): string {
-  // Map JSON file names to Prisma model names
+  // Map JSON file names to Prisma model names (case-sensitive!)
   const mapping: Record<string, string> = {
     orgs: "org",
     members: "member",
     events: "event",
     sponsors: "sponsor",
-    rsvps: "rsvp",
+    rsvps: "RSVP", // Model name is RSVP (uppercase) in schema
     volunteerTasks: "volunteerTask",
     notes: "note",
     attachments: "attachment",

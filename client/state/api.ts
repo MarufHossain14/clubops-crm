@@ -93,10 +93,23 @@ export interface SearchResults {
 }
 
 export interface Team {
-  teamId: number;
-  teamName: string;
-  productOwnerUserId?: number;
-  projectManagerUserId?: number;
+  id: number;
+  name: string;
+  createdAt: string;
+  members?: User[];
+  events?: Project[];
+  sponsors?: Sponsor[];
+}
+
+export interface Sponsor {
+  id: number;
+  orgId: number;
+  name: string;
+  contactEmail?: string;
+  tier?: string;
+  stage: string;
+  pledged?: number;
+  received?: number;
 }
 
 export const api = createApi({

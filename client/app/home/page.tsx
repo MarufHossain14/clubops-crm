@@ -38,14 +38,47 @@ const HomePage = () => {
     data: tasks,
     isLoading: tasksLoading,
     isError: tasksError,
+    error: tasksErrorDetails,
   } = useGetTasksQuery({ eventId: parseInt("1") });
-  const { data: projects, isLoading: isProjectsLoading } =
-    useGetProjectsQuery();
+  const {
+    data: projects,
+    isLoading: isProjectsLoading,
+    isError: projectsError,
+    error: projectsErrorDetails,
+  } = useGetProjectsQuery();
 
   const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
 
   if (tasksLoading || isProjectsLoading) return <div>Loading..</div>;
-  if (tasksError || !tasks || !projects) return <div>Error fetching data</div>;
+
+  if (tasksError || projectsError || !tasks || !projects) {
+    return (
+      <div className="p-8">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-900/20">
+          <h3 className="mb-2 font-semibold text-red-800 dark:text-red-400">
+            Error fetching data
+          </h3>
+          {tasksError && (
+            <p className="text-sm text-red-600 dark:text-red-500">
+              Tasks Error: {tasksErrorDetails && 'status' in tasksErrorDetails
+                ? `Status ${tasksErrorDetails.status} - ${JSON.stringify(tasksErrorDetails.data || tasksErrorDetails.error)}`
+                : 'Failed to fetch tasks'}
+            </p>
+          )}
+          {projectsError && (
+            <p className="text-sm text-red-600 dark:text-red-500">
+              Projects Error: {projectsErrorDetails && 'status' in projectsErrorDetails
+                ? `Status ${projectsErrorDetails.status} - ${JSON.stringify(projectsErrorDetails.data || projectsErrorDetails.error)}`
+                : 'Failed to fetch projects'}
+            </p>
+          )}
+          <p className="mt-2 text-sm text-red-600 dark:text-red-500">
+            The database schema may need to be updated. Please check the server logs.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const statusCount = tasks.reduce(
     (acc: Record<string, number>, task: Task) => {

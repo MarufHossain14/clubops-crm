@@ -44,9 +44,9 @@ const Search = () => {
   }, []);
 
   const totalResults =
-    (searchResults?.tasks?.length || 0) +
-    (searchResults?.projects?.length || 0) +
-    (searchResults?.users?.length || 0);
+    (searchResults?.volunteerTasks?.length || 0) +
+    (searchResults?.events?.length || 0) +
+    (searchResults?.members?.length || 0);
 
   const hasResults = totalResults > 0;
   const showNoResults = searchTerm.length >= 3 && !isLoading && !hasResults && !isError;
@@ -132,43 +132,43 @@ const Search = () => {
               </p>
             </div>
 
-            {/* Tasks Results */}
-            {searchResults.tasks && searchResults.tasks.length > 0 && (
+            {/* Volunteer Tasks Results */}
+            {searchResults.volunteerTasks && searchResults.volunteerTasks.length > 0 && (
               <div>
                 <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">
-                  Tasks ({searchResults.tasks.length})
+                  Volunteer Tasks ({searchResults.volunteerTasks.length})
                 </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {searchResults.tasks.map((task) => (
+                  {searchResults.volunteerTasks.map((task) => (
                     <TaskCard key={task.id} task={task} />
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Projects Results */}
-            {searchResults.projects && searchResults.projects.length > 0 && (
+            {/* Events Results */}
+            {searchResults.events && searchResults.events.length > 0 && (
               <div>
                 <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">
-                  Projects ({searchResults.projects.length})
+                  Events ({searchResults.events.length})
                 </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {searchResults.projects.map((project) => (
-                    <ProjectCard key={project.id} project={project} />
+                  {searchResults.events.map((event) => (
+                    <ProjectCard key={event.id} project={event} />
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Users Results */}
-            {searchResults.users && searchResults.users.length > 0 && (
+            {/* Members Results */}
+            {searchResults.members && searchResults.members.length > 0 && (
               <div>
                 <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">
-                  Users ({searchResults.users.length})
+                  Members ({searchResults.members.length})
                 </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {searchResults.users.map((user) => (
-                    <UserCard key={user.userId || user.email} user={user} />
+                  {searchResults.members.map((member) => (
+                    <UserCard key={member.id || member.email} user={member} />
                   ))}
                 </div>
               </div>
