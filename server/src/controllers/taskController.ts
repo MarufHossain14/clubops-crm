@@ -62,7 +62,7 @@ export const createTask = async (
   } catch (error: any) {
     res
       .status(500)
-      .json({ message: `Problem creating a task: ${error.message}` });
+      .json({ message: `Error creating a task: ${error.message}` });
   }
 };
 
@@ -83,7 +83,7 @@ export const updateTaskStatus = async (
     });
     res.json(updatedTask);
   } catch (error: any) {
-    res.status(500).json({ message: `Problem updating task: ${error.message}` });
+    res.status(500).json({ message: `Error updating task: ${error.message}` });
   }
 };
 
@@ -109,6 +109,6 @@ export const getUserTasks = async (
   } catch (error: any) {
     res
       .status(500)
-      .json({ message: `Problem retrieving user's tasks: ${error.message}` });
+      .json({ message: `Error retrieving user's tasks: ${error.message}` });
   }
 };

@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { Request, Response } from "express";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -11,7 +11,9 @@ export const getProjects = async (
     const projects = await prisma.project.findMany();
     res.json(projects);
   } catch (error: any) {
-    res.status(500).json({ error: `Failed to get projects: ${error.message}` });
+    res
+      .status(500)
+      .json({ message: `Error retrieving projects: ${error.message}` });
   }
 };
 
@@ -19,8 +21,8 @@ export const createProject = async (
   req: Request,
   res: Response
 ): Promise<void> => {
+  const { name, description, startDate, endDate } = req.body;
   try {
-    const { name, description, startDate, endDate } = req.body;
     const newProject = await prisma.project.create({
       data: {
         name,
@@ -31,6 +33,8 @@ export const createProject = async (
     });
     res.status(201).json(newProject);
   } catch (error: any) {
-    res.status(500).json({ error: `Failed to create project: ${error.message}` });
+    res
+      .status(500)
+      .json({ message: `Error creating a project: ${error.message}` });
   }
 };

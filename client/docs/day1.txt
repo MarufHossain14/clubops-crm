@@ -1,0 +1,10 @@
+we use redux toolkit because:
+
+this is the command:
+npm i react-redux @reduxjs/toolkit redux-persist dot env
+we are doing redux-persist because we want to store the states in local storage, this for example allows us, so that when users select dark more the website stays in dark mode when the user visits the website again. 
+we could ahve user other than redux , people dont like redux becuase of the boileplate and other stuff, but we are using redux toolkit, we are using that instead of other tools like zustand, is becuase of the larger community and how much more scalable it is.
+and if we look at big companies, redux is by far still thier main state management library in use by them.
+
+we should not be using react query istead of readux toolkit query, because its designed to have the api calls in global store not in local store, which react query does.
+
