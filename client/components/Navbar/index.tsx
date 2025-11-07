@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useAppDispatch, useAppSelector } from "@/app/redux";
 import { setIsDarkMode, setIsSidebarCollapsed } from "@/state";
 import { useGetAuthUserQuery } from "@/state/api";
-import { signOut } from "aws-amplify/auth";
+// import { signOut } from "aws-amplify/auth";
 import Image from "next/image";
 
 const Navbar = () => {
@@ -16,14 +16,17 @@ const Navbar = () => {
 
   const { data: currentUser } = useGetAuthUserQuery({});
   const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error("Error signing out: ", error);
-    }
+    // AWS Amplify auth commented out
+    // try {
+    //   await signOut();
+    // } catch (error) {
+    //   console.error("Error signing out: ", error);
+    // }
+    console.log("Sign out clicked (AWS auth disabled)");
   };
 
-  if (!currentUser) return null;
+  // Commented out to allow app to render without auth
+  // if (!currentUser) return null;
   const currentUserDetails = currentUser?.userDetails;
 
   return (

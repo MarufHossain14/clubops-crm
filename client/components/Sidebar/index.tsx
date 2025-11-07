@@ -3,7 +3,7 @@
 import { useAppDispatch, useAppSelector } from "@/app/redux";
 import { setIsSidebarCollapsed } from "@/state";
 import { useGetAuthUserQuery, useGetProjectsQuery } from "@/state/api";
-import { signOut } from "aws-amplify/auth";
+// import { signOut } from "aws-amplify/auth";
 import {
   AlertCircle,
   AlertOctagon,
@@ -39,13 +39,16 @@ const Sidebar = () => {
 
   const { data: currentUser } = useGetAuthUserQuery({});
   const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error("Error signing out: ", error);
-    }
+    // AWS Amplify auth commented out
+    // try {
+    //   await signOut();
+    // } catch (error) {
+    //   console.error("Error signing out: ", error);
+    // }
+    console.log("Sign out clicked (AWS auth disabled)");
   };
-  if (!currentUser) return null;
+  // Commented out to allow app to render without auth
+  // if (!currentUser) return null;
   const currentUserDetails = currentUser?.userDetails;
 
   const sidebarClassNames = `fixed flex flex-col h-[100%] justify-between shadow-xl
