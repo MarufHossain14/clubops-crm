@@ -7,10 +7,21 @@ import UserCard from "@/components/UserCard";
 import { useSearchQuery } from "@/state/api";
 import { Search as SearchIcon } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Skeleton, SkeletonCard } from "@/components/Skeleton";
 
 const Search = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const searchParams = useSearchParams();
+  const queryParam = searchParams.get("q") || "";
+  const [searchTerm, setSearchTerm] = useState(queryParam);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+
+  // Update search term when query param changes
+  useEffect(() => {
+    if (queryParam) {
+      setSearchTerm(queryParam);
+    }
+  }, [queryParam]);
 
   const {
     data: searchResults,
@@ -64,8 +75,9 @@ const Search = () => {
           <input
             type="text"
             placeholder="Search for tasks, projects, or users... (min 3 characters)"
-            className="w-full rounded-lg border-2 border-gray-300 bg-white py-3 pl-12 pr-4 text-gray-900 shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-400"
+            className="w-full rounded-lg border border-gray-300 bg-white py-3 pl-12 pr-4 text-gray-900 shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-400"
             onChange={handleSearchChange}
+            defaultValue={queryParam}
           />
         </div>
 
@@ -81,9 +93,13 @@ const Search = () => {
       <div className="mt-8">
         {/* Loading State */}
         {isLoading && (
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-            <p className="text-gray-600 dark:text-gray-400">Searching...</p>
+          <div className="space-y-6">
+            <Skeleton variant="text" height={24} width="200px" />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {[...Array(6)].map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
           </div>
         )}
 

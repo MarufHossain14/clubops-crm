@@ -38,6 +38,7 @@ import {
   CheckCircle,
   Activity,
 } from "lucide-react";
+import { Skeleton, SkeletonCard } from "@/components/Skeleton";
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
 
@@ -204,9 +205,21 @@ const HomePage = () => {
 
   if (isProjectsLoading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="text-lg text-gray-600 dark:text-gray-400">
-          Loading dashboard...
+      <div className="px-4 pb-8 xl:px-6">
+        <div className="pt-5">
+          <Skeleton variant="text" height={32} width="200px" className="mb-6" />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+                <Skeleton variant="text" height={16} width="60%" className="mb-2" />
+                <Skeleton variant="text" height={32} width="40%" />
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
         </div>
       </div>
     );

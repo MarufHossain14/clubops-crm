@@ -6,6 +6,9 @@ import { EllipsisVertical, MessageSquareMore, Plus, User } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
 import TaskDetailModal from "@/components/TaskDetailModal";
+import { Skeleton, SkeletonTaskCard } from "@/components/Skeleton";
+import { EmptyState } from "@/components/EmptyState";
+import { Inbox } from "lucide-react";
 
 type BoardProps = {
   id: string;
@@ -54,8 +57,19 @@ const BoardView = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
 
   if (isLoading) {
     return (
-      <div className="flex h-64 items-center justify-center p-4">
-        <div className="text-lg text-gray-600 dark:text-gray-400">Loading tasks...</div>
+      <div className="px-4 pb-8 xl:px-6">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 pt-5">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+              <Skeleton variant="text" height={20} width="60%" className="mb-4" />
+              <div className="space-y-3">
+                {[...Array(2)].map((_, j) => (
+                  <SkeletonTaskCard key={j} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -86,48 +100,35 @@ const BoardView = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
 
   if (!tasks || tasks.length === 0) {
     return (
-      <div className="p-4">
-        <DndProvider backend={HTML5Backend}>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {taskStatus.map((status) => (
-              <TaskColumn
-                key={status}
-                status={status}
-                tasks={[]}
-                moveTask={moveTask}
-                setIsModalNewTaskOpen={setIsModalNewTaskOpen}
-              />
-            ))}
-          </div>
-        </DndProvider>
-        <div className="mt-8 flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white py-12 dark:border-gray-700 dark:bg-gray-800">
-          <div className="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-700">
-            <svg
-              className="h-12 w-12 text-gray-400 dark:text-gray-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-              />
-            </svg>
-          </div>
-          <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-            No tasks found
-          </h3>
-          <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-            This project doesn't have any tasks yet. Create your first task to get started.
-          </p>
-          <button
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-            onClick={() => setIsModalNewTaskOpen(true)}
-          >
-            Create Task
-          </button>
+      <div className="px-4 pb-8 xl:px-6">
+        <div className="pt-5">
+          <DndProvider backend={HTML5Backend}>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {taskStatus.map((status) => (
+                <TaskColumn
+                  key={status}
+                  status={status}
+                  tasks={[]}
+                  moveTask={moveTask}
+                  setIsModalNewTaskOpen={setIsModalNewTaskOpen}
+                />
+              ))}
+            </div>
+          </DndProvider>
+          <EmptyState
+            icon={Inbox}
+            title="No tasks found"
+            description="This project doesn't have any tasks yet. Create your first task to get started."
+            action={
+              <button
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                onClick={() => setIsModalNewTaskOpen(true)}
+              >
+                Create Task
+              </button>
+            }
+            className="mt-8"
+          />
         </div>
       </div>
     );

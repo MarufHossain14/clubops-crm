@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import StoreProvider, { useAppSelector } from './redux';
 import { SignedIn, SignedOut, SignInButton, SignUpButton } from '@clerk/nextjs';
+import { ToastProvider } from '@/components/Toast/ToastContainer';
 
 const DashboardLayout = ({children}: {children: React.ReactNode}) => {
   const isSideBarCollapsed = useAppSelector((state) => state.global.isSidebarCollapsed,);
@@ -66,7 +67,9 @@ const DashboardLayout = ({children}: {children: React.ReactNode}) => {
 const DashboardWrapper = ({children}: {children: React.ReactNode}) => {
   return (
     <StoreProvider>
-      <DashboardLayout>{children}</DashboardLayout>
+      <ToastProvider>
+        <DashboardLayout>{children}</DashboardLayout>
+      </ToastProvider>
     </StoreProvider>
   );
 };

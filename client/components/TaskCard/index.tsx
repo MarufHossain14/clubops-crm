@@ -23,15 +23,15 @@ const TaskCard = ({ task }: Props) => {
   const getPriorityColor = (priority: Task["priority"]) => {
     switch (priority) {
       case "Urgent":
-        return "text-red-600 dark:text-red-400";
+        return "text-red-700 bg-red-50 dark:text-red-400 dark:bg-red-900/20";
       case "High":
-        return "text-orange-600 dark:text-orange-400";
+        return "text-orange-700 bg-orange-50 dark:text-orange-400 dark:bg-orange-900/20";
       case "Medium":
-        return "text-yellow-600 dark:text-yellow-400";
+        return "text-yellow-700 bg-yellow-50 dark:text-yellow-400 dark:bg-yellow-900/20";
       case "Low":
-        return "text-blue-600 dark:text-blue-400";
+        return "text-blue-700 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/20";
       default:
-        return "text-gray-600 dark:text-gray-400";
+        return "text-gray-700 bg-gray-100 dark:text-gray-400 dark:bg-gray-700";
     }
   };
 
@@ -49,11 +49,11 @@ const TaskCard = ({ task }: Props) => {
   };
 
   return (
-    <div className="group border-b border-gray-200 bg-white px-6 py-4 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700/50">
+    <div className="group border-b border-gray-200 bg-white px-6 py-4 transition-all hover:bg-gray-50/50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700/30">
       <div className="flex items-start gap-4">
-        {/* Left: Checkbox or Status Indicator */}
-        <div className="flex-shrink-0 pt-1">
-          <div className={`h-3 w-3 rounded-full ${
+        {/* Left: Status Indicator */}
+        <div className="flex-shrink-0 pt-1.5">
+          <div className={`h-2.5 w-2.5 rounded-full ${
             task.status === "Completed"
               ? "bg-green-500"
               : task.status === "Work In Progress"
@@ -69,12 +69,12 @@ const TaskCard = ({ task }: Props) => {
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
               {/* Title and Priority */}
-              <div className="flex items-center gap-3 mb-2">
-                <h3 className="text-base font-semibold text-gray-900 dark:text-white truncate">
+              <div className="flex items-center gap-2.5 mb-2">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                   {task.title}
                 </h3>
                 {task.priority && (
-                  <span className={`text-xs font-medium flex-shrink-0 ${getPriorityColor(task.priority)}`}>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${getPriorityColor(task.priority)}`}>
                     {task.priority}
                   </span>
                 )}
@@ -82,13 +82,13 @@ const TaskCard = ({ task }: Props) => {
 
               {/* Description */}
               {task.description && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
                   {task.description}
                 </p>
               )}
 
               {/* Meta Information Row */}
-              <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+              <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
                 {/* Status */}
                 {task.status && (
                   <div className="flex items-center gap-1.5">

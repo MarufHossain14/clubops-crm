@@ -22,22 +22,25 @@ const Modal = ({ children, isOpen, onClose, name }: Props) => {
 
   return ReactDOM.createPortal(
     <div
-      className="fixed inset-0 z-50 flex h-full w-full items-center justify-center overflow-y-auto bg-gray-600/50 p-4 backdrop-blur-sm dark:bg-gray-900/75"
+      className="fixed inset-0 z-50 flex h-full w-full items-center justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm transition-opacity"
       onClick={handleBackdropClick}
+      style={{ animation: 'fadeIn 0.2s ease-out' }}
     >
       <div
-        className="w-full max-w-2xl rounded-lg bg-white p-4 shadow-lg dark:bg-gray-800 dark:shadow-xl dark:shadow-black/20"
+        className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-2xl transition-all dark:bg-gray-800"
         onClick={(e) => e.stopPropagation()}
+        style={{ animation: 'slideUp 0.3s ease-out' }}
       >
         <Header
           name={name}
           buttonComponent={
             <button
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
               onClick={onClose}
               type="button"
+              aria-label="Close modal"
             >
-              <X size={18} />
+              <X size={20} />
             </button>
           }
           isSmallText

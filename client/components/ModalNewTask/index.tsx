@@ -2,6 +2,7 @@ import Modal from "@/components/Modal";
 import { Priority, Status, useCreateTaskMutation } from "@/state/api";
 import React, { useState } from "react";
 import { formatISO } from "date-fns";
+import { useToast } from "@/components/Toast/ToastContainer";
 
 type Props = {
   isOpen: boolean;
@@ -11,6 +12,7 @@ type Props = {
 
 const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
   const [createTask, { isLoading }] = useCreateTaskMutation();
+  const { showToast } = useToast();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<Status>(Status.ToDo);
@@ -62,9 +64,10 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
       setAuthorUserId("");
       setAssignedUserId("");
       setProjectId("");
-    } catch (error) {
-      console.error("Error creating task:", error);
-      // Modal stays open on error so user can fix and retry
+      showToast("Task created successfully", "success");
+    } catch (error: any) {
+      const errorMessage = error?.data?.error?.message || error?.message || "Failed to create task";
+      showToast(errorMessage, "error");
     }
   };
 
@@ -73,13 +76,13 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
   };
 
   const selectStyles =
-    "mb-4 block w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-500 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-blue-500";
+    "mb-4 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 transition-colors placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-900";
 
   const inputStyles =
-    "w-full rounded border border-gray-300 bg-white p-2 text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500";
+    "w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition-colors placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-900";
 
   const textareaStyles =
-    "w-full rounded border border-gray-300 bg-white p-2 text-gray-900 shadow-sm placeholder:text-gray-400 resize-y min-h-[100px] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500";
+    "w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition-colors placeholder:text-gray-400 resize-y min-h-[100px] focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-900";
 
   return (
     <>
@@ -201,20 +204,30 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-base font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+            className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className={`flex-1 rounded-md border border-transparent px-4 py-2.5 text-base font-semibold text-white shadow-md transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 dark:focus:ring-blue-400 dark:focus:ring-offset-gray-800 ${
+            className={`flex-1 rounded-lg border border-transparent px-4 py-2.5 text-sm font-semibold text-white transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-blue-400 dark:focus:ring-offset-gray-800 ${
               !isFormValid() || isLoading
-                ? "cursor-not-allowed bg-gray-400 text-gray-700 hover:bg-gray-400 hover:shadow-md dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
-                : "bg-blue-600 hover:bg-blue-700 active:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-500 dark:active:bg-blue-400 dark:shadow-blue-900/50"
+                ? "cursor-not-allowed bg-gray-400 opacity-60 dark:bg-gray-600"
+                : "bg-blue-600 shadow-sm hover:bg-blue-700 hover:shadow-md active:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-500"
             }`}
             disabled={!isFormValid() || isLoading}
           >
-            {isLoading ? "Creating..." : "Create Task"}
+            {isLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Creating...
+              </span>
+            ) : (
+              "Create Task"
+            )}
           </button>
         </div>
       </form>
