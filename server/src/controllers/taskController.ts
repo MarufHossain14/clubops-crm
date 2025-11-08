@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../lib/prisma";
+import { asyncHandler } from "../middleware/errorHandler";
+import { ApiError } from "../middleware/errorHandler";
+import { validateRequired, sanitizeString } from "../middleware/validator";
 
 // Helper function to transform task
 const transformTask = (task: any) => ({
@@ -58,84 +59,66 @@ const transformTask = (task: any) => ({
   dueDate: task.dueAt ? task.dueAt.toISOString() : undefined,
 });
 
-export const getAllTasks = async (req: Request, res: Response): Promise<void> => {
-  try {
-    console.log("getAllTasks endpoint called");
-    const tasks = await prisma.volunteerTask.findMany({
-      include: {
-        assignee: true,
-        event: true,
-        notes: {
-          include: {
-            author: true,
-          },
-        },
-        attachments: {
-          include: {
-            uploadedBy: true,
-          },
+export const getAllTasks = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const tasks = await prisma.volunteerTask.findMany({
+    include: {
+      assignee: true,
+      event: true,
+      notes: {
+        include: {
+          author: true,
         },
       },
-    });
+      attachments: {
+        include: {
+          uploadedBy: true,
+        },
+      },
+    },
+  });
 
-    console.log(`Found ${tasks.length} tasks`);
-    const transformedTasks = tasks.map(transformTask);
-    res.json(transformedTasks);
-  } catch (error: any) {
-    console.error("Error retrieving all volunteer tasks:", error);
-    res
-      .status(500)
-      .json({ message: `Error retrieving volunteer tasks: ${error.message}` });
-  }
-};
+  const transformedTasks = tasks.map(transformTask);
+  res.json(transformedTasks);
+});
 
-export const getTasks = async (req: Request, res: Response): Promise<void> => {
+export const getTasks = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { eventId } = req.query;
 
   // Validate eventId
   if (!eventId) {
-    res.status(400).json({ message: "eventId is required" });
-    return;
+    throw new ApiError(400, "eventId is required");
   }
 
   const eventIdNum = Number(eventId);
-  if (isNaN(eventIdNum)) {
-    res.status(400).json({ message: "eventId must be a valid number" });
-    return;
+  if (isNaN(eventIdNum) || eventIdNum <= 0) {
+    throw new ApiError(400, "eventId must be a valid positive number");
   }
 
-  try {
-    const tasks = await prisma.volunteerTask.findMany({
-      where: {
-        eventId: eventIdNum,
-      },
-      include: {
-        assignee: true,
-        event: true,
-        notes: {
-          include: {
-            author: true,
-          },
-        },
-        attachments: {
-          include: {
-            uploadedBy: true,
-          },
+  const tasks = await prisma.volunteerTask.findMany({
+    where: {
+      eventId: eventIdNum,
+    },
+    include: {
+      assignee: true,
+      event: true,
+      notes: {
+        include: {
+          author: true,
         },
       },
-    });
+      attachments: {
+        include: {
+          uploadedBy: true,
+        },
+      },
+    },
+  });
 
-    const transformedTasks = tasks.map(transformTask);
-    res.json(transformedTasks);
-  } catch (error: any) {
-    console.error("Error retrieving volunteer tasks:", error);
-    res
-      .status(500)
-      .json({ message: `Error retrieving volunteer tasks: ${error.message}` });
-  }
-};
+  const transformedTasks = tasks.map(transformTask);
+  res.json(transformedTasks);
+});
 
-export const createTask = async (
+export const createTask = asyncHandler(async (
   req: Request,
   res: Response
 ): Promise<void> => {
@@ -148,74 +131,108 @@ export const createTask = async (
     orgId,
     assigneeMemberId,
   } = req.body;
-  try {
-    const newTask = await prisma.volunteerTask.create({
-      data: {
-        title,
-        status,
-        priority: priority || null,
-        dueAt: dueAt ? new Date(dueAt) : null,
-        eventId,
-        orgId,
-        assigneeMemberId: assigneeMemberId || null,
-      },
-      include: {
-        assignee: true,
-        event: true,
-      },
-    });
-    res.status(201).json(newTask);
-  } catch (error: any) {
-    res
-      .status(500)
-      .json({ message: `Error creating a volunteer task: ${error.message}` });
-  }
-};
 
-export const updateTaskStatus = async (
+  // Validate required fields
+  validateRequired(['title', 'status', 'eventId', 'orgId'], req.body);
+
+  // Validate and sanitize title
+  const sanitizedTitle = sanitizeString(title);
+
+  // Validate dates if provided
+  let dueDate: Date | null = null;
+  if (dueAt) {
+    dueDate = new Date(dueAt);
+    if (isNaN(dueDate.getTime())) {
+      throw new ApiError(400, 'Invalid due date format');
+    }
+  }
+
+  // Validate IDs
+  const eventIdNum = Number(eventId);
+  const orgIdNum = Number(orgId);
+
+  if (isNaN(eventIdNum) || eventIdNum <= 0) {
+    throw new ApiError(400, 'Invalid eventId');
+  }
+
+  if (isNaN(orgIdNum) || orgIdNum <= 0) {
+    throw new ApiError(400, 'Invalid orgId');
+  }
+
+  const newTask = await prisma.volunteerTask.create({
+    data: {
+      title: sanitizedTitle,
+      status,
+      priority: priority || null,
+      dueAt: dueDate,
+      eventId: eventIdNum,
+      orgId: orgIdNum,
+      assigneeMemberId: assigneeMemberId ? Number(assigneeMemberId) : null,
+    },
+    include: {
+      assignee: true,
+      event: true,
+    },
+  });
+
+  res.status(201).json(newTask);
+});
+
+export const updateTaskStatus = asyncHandler(async (
   req: Request,
   res: Response
 ): Promise<void> => {
   const { taskId } = req.params;
   const { status } = req.body;
-  try {
-    const updatedTask = await prisma.volunteerTask.update({
-      where: {
-        id: Number(taskId),
-      },
-      data: {
-        status: status,
-      },
-      include: {
-        assignee: true,
-        event: true,
-      },
-    });
-    res.json(updatedTask);
-  } catch (error: any) {
-    res.status(500).json({ message: `Error updating volunteer task: ${error.message}` });
-  }
-};
 
-export const getUserTasks = async (
+  // Validate taskId
+  const taskIdNum = Number(taskId);
+  if (isNaN(taskIdNum) || taskIdNum <= 0) {
+    throw new ApiError(400, 'Invalid taskId');
+  }
+
+  // Validate status
+  if (!status) {
+    throw new ApiError(400, 'Status is required');
+  }
+
+  const updatedTask = await prisma.volunteerTask.update({
+    where: {
+      id: taskIdNum,
+    },
+    data: {
+      status: status,
+    },
+    include: {
+      assignee: true,
+      event: true,
+    },
+  });
+
+  res.json(updatedTask);
+});
+
+export const getUserTasks = asyncHandler(async (
   req: Request,
   res: Response
 ): Promise<void> => {
   const { memberId } = req.params;
-  try {
-    const tasks = await prisma.volunteerTask.findMany({
-      where: {
-        assigneeMemberId: Number(memberId),
-      },
-      include: {
-        assignee: true,
-        event: true,
-      },
-    });
-    res.json(tasks);
-  } catch (error: any) {
-    res
-      .status(500)
-      .json({ message: `Error retrieving member's volunteer tasks: ${error.message}` });
+
+  // Validate memberId
+  const memberIdNum = Number(memberId);
+  if (isNaN(memberIdNum) || memberIdNum <= 0) {
+    throw new ApiError(400, 'Invalid memberId');
   }
-};
+
+  const tasks = await prisma.volunteerTask.findMany({
+    where: {
+      assigneeMemberId: memberIdNum,
+    },
+    include: {
+      assignee: true,
+      event: true,
+    },
+  });
+
+  res.json(tasks);
+});

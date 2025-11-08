@@ -1,75 +1,94 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
+import { asyncHandler } from "../middleware/errorHandler";
+import { ApiError } from "../middleware/errorHandler";
+import { validateRequired, validateEmail, sanitizeString } from "../middleware/validator";
 
-const prisma = new PrismaClient();
+export const getUsers = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const members = await prisma.member.findMany({
+    include: {
+      org: true,
+    },
+  });
+  res.json(members);
+});
 
-export const getUsers = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const members = await prisma.member.findMany({
-      include: {
-        org: true,
-      },
-    });
-    res.json(members);
-  } catch (error: any) {
-    res
-      .status(500)
-      .json({ message: `Error retrieving members: ${error.message}` });
-  }
-};
-
-export const getUser = async (req: Request, res: Response): Promise<void> => {
+export const getUser = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { memberId } = req.params;
-  try {
-    const member = await prisma.member.findUnique({
-      where: {
-        id: Number(memberId),
-      },
-      include: {
-        org: true,
-        rsvps: {
-          include: {
-            event: true,
-          },
+
+  // Validate memberId
+  const memberIdNum = Number(memberId);
+  if (isNaN(memberIdNum) || memberIdNum <= 0) {
+    throw new ApiError(400, 'Invalid memberId');
+  }
+
+  const member = await prisma.member.findUnique({
+    where: {
+      id: memberIdNum,
+    },
+    include: {
+      org: true,
+      rsvps: {
+        include: {
+          event: true,
         },
       },
-    });
+    },
+  });
 
-    res.json(member);
-  } catch (error: any) {
-    res
-      .status(500)
-      .json({ message: `Error retrieving member: ${error.message}` });
+  if (!member) {
+    throw new ApiError(404, 'Member not found');
   }
-};
 
-export const postUser = async (req: Request, res: Response) => {
-  try {
-    const {
-      fullName,
-      email,
-      role,
-      tags = [],
-      orgId,
-      lastSeenAt,
-    } = req.body;
-    const newMember = await prisma.member.create({
-      data: {
-        fullName,
-        email,
-        role,
-        tags,
-        orgId,
-        lastSeenAt: lastSeenAt ? new Date(lastSeenAt) : null,
-      },
-      include: {
-        org: true,
-      },
-    });
-    res.json({ message: "Member Created Successfully", newMember });
-  } catch (error: any) {
-    res
-      .status(500)
-      .json({ message: `Error creating member: ${error.message}` });
+  res.json(member);
+});
+
+export const postUser = asyncHandler(async (req: Request, res: Response) => {
+  const {
+    fullName,
+    email,
+    role,
+    tags = [],
+    orgId,
+    lastSeenAt,
+  } = req.body;
+
+  // Validate required fields
+  validateRequired(['fullName', 'email', 'role', 'orgId'], req.body);
+
+  // Validate email format
+  if (!validateEmail(email)) {
+    throw new ApiError(400, 'Invalid email format');
   }
-};
+
+  // Validate orgId
+  const orgIdNum = Number(orgId);
+  if (isNaN(orgIdNum) || orgIdNum <= 0) {
+    throw new ApiError(400, 'Invalid orgId');
+  }
+
+  // Sanitize inputs
+  const sanitizedFullName = sanitizeString(fullName);
+  const sanitizedRole = sanitizeString(role);
+
+  // Validate tags if provided
+  if (tags && !Array.isArray(tags)) {
+    throw new ApiError(400, 'Tags must be an array');
+  }
+
+  const newMember = await prisma.member.create({
+    data: {
+      fullName: sanitizedFullName,
+      email: email.toLowerCase().trim(),
+      role: sanitizedRole,
+      tags: tags || [],
+      orgId: orgIdNum,
+      lastSeenAt: lastSeenAt ? new Date(lastSeenAt) : null,
+    },
+    include: {
+      org: true,
+    },
+  });
+
+  res.status(201).json({ message: "Member Created Successfully", newMember });
+});

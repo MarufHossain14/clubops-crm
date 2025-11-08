@@ -1,18 +1,23 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../lib/prisma";
+import { asyncHandler } from "../middleware/errorHandler";
+import { ApiError } from "../middleware/errorHandler";
 
 // Feature 1: Event Risk Detection & Alerts
-export const analyzeEventRisks = async (
+export const analyzeEventRisks = asyncHandler(async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  try {
-    const { eventId } = req.params;
+  const { eventId } = req.params;
+
+  // Validate eventId
+  const eventIdNum = parseInt(eventId);
+  if (isNaN(eventIdNum) || eventIdNum <= 0) {
+    throw new ApiError(400, 'Invalid eventId');
+  }
 
     const event = await prisma.event.findUnique({
-      where: { id: parseInt(eventId) },
+      where: { id: eventIdNum },
       include: {
         rsvps: {
           include: {
@@ -33,8 +38,7 @@ export const analyzeEventRisks = async (
     });
 
     if (!event) {
-      res.status(404).json({ message: "Event not found" });
-      return;
+      throw new ApiError(404, 'Event not found');
     }
 
     const risks: Array<{
@@ -183,21 +187,14 @@ export const analyzeEventRisks = async (
         lowRisks: risks.filter((r) => r.severity === "low").length,
       },
     });
-  } catch (error: any) {
-    console.error("Error analyzing event risks:", error);
-    res.status(500).json({
-      message: `Error analyzing event risks: ${error.message}`,
-    });
-  }
-};
+});
 
 // Feature 2: Automated Email Generation
-export const generateEmail = async (
+export const generateEmail = asyncHandler(async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  try {
-    const { type, eventId, taskId, memberId, recipientEmail, recipientName } = req.body;
+  const { type, eventId, taskId, memberId, recipientEmail, recipientName } = req.body;
 
     // For hackathon demo, we'll use a simple template-based approach
     // In production, you'd use OpenAI API for more sophisticated generation
@@ -211,8 +208,12 @@ export const generateEmail = async (
     // Get event details if eventId provided
     let event = null;
     if (eventId) {
+      const eventIdNum = parseInt(eventId);
+      if (isNaN(eventIdNum) || eventIdNum <= 0) {
+        throw new ApiError(400, 'Invalid eventId');
+      }
       event = await prisma.event.findUnique({
-        where: { id: parseInt(eventId) },
+        where: { id: eventIdNum },
         include: {
           org: true,
         },
@@ -222,8 +223,12 @@ export const generateEmail = async (
     // Get task details if taskId provided
     let task = null;
     if (taskId) {
+      const taskIdNum = parseInt(taskId);
+      if (isNaN(taskIdNum) || taskIdNum <= 0) {
+        throw new ApiError(400, 'Invalid taskId');
+      }
       task = await prisma.volunteerTask.findUnique({
-        where: { id: parseInt(taskId) },
+        where: { id: taskIdNum },
         include: {
           event: true,
           assignee: true,
@@ -235,8 +240,7 @@ export const generateEmail = async (
     switch (type) {
       case "event_reminder":
         if (!event) {
-          res.status(400).json({ message: "Event ID required for event reminder" });
-          return;
+          throw new ApiError(400, "Event ID required for event reminder");
         }
         emailContent.subject = `Reminder: ${event.title} - ${new Date(event.startsAt).toLocaleDateString()}`;
         emailContent.body = `
@@ -257,8 +261,7 @@ ${event.org?.name || "Event Management Team"}
 
       case "task_assignment":
         if (!task) {
-          res.status(400).json({ message: "Task ID required for task assignment" });
-          return;
+          throw new ApiError(400, "Task ID required for task assignment");
         }
         emailContent.subject = `New Task Assignment: ${task.title}`;
         emailContent.body = `
@@ -282,8 +285,7 @@ Event Management Team
 
       case "task_reminder":
         if (!task) {
-          res.status(400).json({ message: "Task ID required for task reminder" });
-          return;
+          throw new ApiError(400, "Task ID required for task reminder");
         }
         const dueDate = task.dueAt ? new Date(task.dueAt) : null;
         const daysUntilDue = dueDate
@@ -315,8 +317,7 @@ Event Management Team
 
       case "sponsor_thank_you":
         if (!event) {
-          res.status(400).json({ message: "Event ID required for sponsor thank you" });
-          return;
+          throw new ApiError(400, "Event ID required for sponsor thank you");
         }
         emailContent.subject = `Thank You for Supporting ${event.title}`;
         emailContent.body = `
@@ -339,8 +340,7 @@ ${event.org?.name || "Event Management Team"}
 
       case "rsvp_confirmation":
         if (!event) {
-          res.status(400).json({ message: "Event ID required for RSVP confirmation" });
-          return;
+          throw new ApiError(400, "Event ID required for RSVP confirmation");
         }
         emailContent.subject = `RSVP Confirmation: ${event.title}`;
         emailContent.body = `
@@ -363,10 +363,7 @@ ${event.org?.name || "Event Management Team"}
         break;
 
       default:
-        res.status(400).json({
-          message: "Invalid email type. Supported types: event_reminder, task_assignment, task_reminder, sponsor_thank_you, rsvp_confirmation",
-        });
-        return;
+        throw new ApiError(400, "Invalid email type. Supported types: event_reminder, task_assignment, task_reminder, sponsor_thank_you, rsvp_confirmation");
     }
 
     res.json({
@@ -374,20 +371,13 @@ ${event.org?.name || "Event Management Team"}
       email: emailContent,
       generatedAt: new Date().toISOString(),
     });
-  } catch (error: any) {
-    console.error("Error generating email:", error);
-    res.status(500).json({
-      message: `Error generating email: ${error.message}`,
-    });
-  }
-};
+});
 
 // Get all events with risk analysis
-export const getAllEventsWithRisks = async (
+export const getAllEventsWithRisks = asyncHandler(async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  try {
     const events = await prisma.event.findMany({
       include: {
         rsvps: true,
@@ -424,10 +414,4 @@ export const getAllEventsWithRisks = async (
     );
 
     res.json(eventsWithRisks);
-  } catch (error: any) {
-    console.error("Error getting events with risks:", error);
-    res.status(500).json({
-      message: `Error getting events with risks: ${error.message}`,
-    });
-  }
-};
+});

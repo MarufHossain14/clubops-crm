@@ -1,64 +1,63 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
+import { asyncHandler } from "../middleware/errorHandler";
+import { ApiError } from "../middleware/errorHandler";
 
-const prisma = new PrismaClient();
-
-export const getSponsors = async (req: Request, res: Response): Promise<void> => {
+export const getSponsors = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { orgId } = req.query;
 
-  try {
-    const where = orgId ? { orgId: Number(orgId) } : {};
+  const where: { orgId?: number } = {};
 
-    const sponsors = await prisma.sponsor.findMany({
-      where,
-      include: {
-        org: true,
-      },
-    });
-
-    const transformedSponsors = sponsors.map((sponsor) => ({
-      id: sponsor.id,
-      orgId: sponsor.orgId,
-      name: sponsor.name,
-      contactEmail: sponsor.contactEmail || undefined,
-      tier: sponsor.tier || undefined,
-      stage: sponsor.stage,
-      pledged: sponsor.pledged ? sponsor.pledged.toNumber() : undefined,
-      received: sponsor.received ? sponsor.received.toNumber() : undefined,
-      org: sponsor.org,
-    }));
-
-    res.json(transformedSponsors);
-  } catch (error: any) {
-    console.error("Error retrieving sponsors:", error);
-    res.status(500).json({ message: `Error retrieving sponsors: ${error.message}` });
+  // Validate orgId if provided
+  if (orgId) {
+    const orgIdNum = Number(orgId);
+    if (isNaN(orgIdNum) || orgIdNum <= 0) {
+      throw new ApiError(400, 'Invalid orgId');
+    }
+    where.orgId = orgIdNum;
   }
-};
 
-export const getAllSponsors = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const sponsors = await prisma.sponsor.findMany({
-      include: {
-        org: true,
-      },
-    });
+  const sponsors = await prisma.sponsor.findMany({
+    where,
+    include: {
+      org: true,
+    },
+  });
 
-    const transformedSponsors = sponsors.map((sponsor) => ({
-      id: sponsor.id,
-      orgId: sponsor.orgId,
-      name: sponsor.name,
-      contactEmail: sponsor.contactEmail || undefined,
-      tier: sponsor.tier || undefined,
-      stage: sponsor.stage,
-      pledged: sponsor.pledged ? sponsor.pledged.toNumber() : undefined,
-      received: sponsor.received ? sponsor.received.toNumber() : undefined,
-      org: sponsor.org,
-    }));
+  const transformedSponsors = sponsors.map((sponsor) => ({
+    id: sponsor.id,
+    orgId: sponsor.orgId,
+    name: sponsor.name,
+    contactEmail: sponsor.contactEmail || undefined,
+    tier: sponsor.tier || undefined,
+    stage: sponsor.stage,
+    pledged: sponsor.pledged ? sponsor.pledged.toNumber() : undefined,
+    received: sponsor.received ? sponsor.received.toNumber() : undefined,
+    org: sponsor.org,
+  }));
 
-    res.json(transformedSponsors);
-  } catch (error: any) {
-    console.error("Error retrieving all sponsors:", error);
-    res.status(500).json({ message: `Error retrieving sponsors: ${error.message}` });
-  }
-};
+  res.json(transformedSponsors);
+});
+
+export const getAllSponsors = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const sponsors = await prisma.sponsor.findMany({
+    include: {
+      org: true,
+    },
+  });
+
+  const transformedSponsors = sponsors.map((sponsor) => ({
+    id: sponsor.id,
+    orgId: sponsor.orgId,
+    name: sponsor.name,
+    contactEmail: sponsor.contactEmail || undefined,
+    tier: sponsor.tier || undefined,
+    stage: sponsor.stage,
+    pledged: sponsor.pledged ? sponsor.pledged.toNumber() : undefined,
+    received: sponsor.received ? sponsor.received.toNumber() : undefined,
+    org: sponsor.org,
+  }));
+
+  res.json(transformedSponsors);
+});
 

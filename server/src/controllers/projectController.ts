@@ -1,73 +1,87 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
+import { asyncHandler } from "../middleware/errorHandler";
+import { ApiError } from "../middleware/errorHandler";
+import { validateRequired, sanitizeString } from "../middleware/validator";
 
-const prisma = new PrismaClient();
-
-export const getProjects = async (
+export const getProjects = asyncHandler(async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  try {
-    const events = await prisma.event.findMany({
-      include: {
-        org: true,
-        rsvps: true,
-        volunteerTasks: true,
-      },
-      orderBy: {
-        id: 'asc',
-      },
-    });
+  const events = await prisma.event.findMany({
+    include: {
+      org: true,
+      rsvps: true,
+      volunteerTasks: true,
+    },
+    orderBy: {
+      id: 'asc',
+    },
+  });
 
-    // Transform events to match frontend Project interface
-    const projects = events.map((event) => ({
-      id: event.id,
-      title: event.title,
-      name: event.title, // Some components use 'name' instead of 'title'
-      startsAt: event.startsAt.toISOString(),
-      endsAt: event.endsAt.toISOString(),
-      location: event.location || undefined,
-      status: event.status,
-      capacity: event.capacity || undefined,
-      orgId: event.orgId,
-      org: event.org,
-      rsvps: event.rsvps,
-      volunteerTasks: event.volunteerTasks,
-    }));
+  // Transform events to match frontend Project interface
+  const projects = events.map((event) => ({
+    id: event.id,
+    title: event.title,
+    name: event.title, // Some components use 'name' instead of 'title'
+    startsAt: event.startsAt.toISOString(),
+    endsAt: event.endsAt.toISOString(),
+    location: event.location || undefined,
+    status: event.status,
+    capacity: event.capacity || undefined,
+    orgId: event.orgId,
+    org: event.org,
+    rsvps: event.rsvps,
+    volunteerTasks: event.volunteerTasks,
+  }));
 
-    res.json(projects);
-  } catch (error: any) {
-    console.error("Error retrieving events:", error);
-    res
-      .status(500)
-      .json({ message: `Error retrieving events: ${error.message}` });
-  }
-};
+  res.json(projects);
+});
 
-export const createProject = async (
+export const createProject = asyncHandler(async (
   req: Request,
   res: Response
 ): Promise<void> => {
   const { title, startsAt, endsAt, location, status, capacity, orgId } = req.body;
-  try {
-    const newEvent = await prisma.event.create({
-      data: {
-        title,
-        startsAt: new Date(startsAt),
-        endsAt: new Date(endsAt),
-        location: location || null,
-        status,
-        capacity: capacity || null,
-        orgId,
-      },
-      include: {
-        org: true,
-      },
-    });
-    res.status(201).json(newEvent);
-  } catch (error: any) {
-    res
-      .status(500)
-      .json({ message: `Error creating an event: ${error.message}` });
+
+  // Validate required fields
+  validateRequired(['title', 'startsAt', 'endsAt', 'status', 'orgId'], req.body);
+
+  // Validate dates
+  const startDate = new Date(startsAt);
+  const endDate = new Date(endsAt);
+
+  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    throw new ApiError(400, 'Invalid date format');
   }
-};
+
+  if (endDate < startDate) {
+    throw new ApiError(400, 'End date must be after start date');
+  }
+
+  // Validate capacity if provided
+  if (capacity !== undefined && (capacity < 0 || !Number.isInteger(capacity))) {
+    throw new ApiError(400, 'Capacity must be a positive integer');
+  }
+
+  // Sanitize input
+  const sanitizedTitle = sanitizeString(title);
+  const sanitizedLocation = location ? sanitizeString(location) : null;
+
+  const newEvent = await prisma.event.create({
+    data: {
+      title: sanitizedTitle,
+      startsAt: startDate,
+      endsAt: endDate,
+      location: sanitizedLocation,
+      status,
+      capacity: capacity || null,
+      orgId: Number(orgId),
+    },
+    include: {
+      org: true,
+    },
+  });
+
+  res.status(201).json(newEvent);
+});
