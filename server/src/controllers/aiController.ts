@@ -208,7 +208,7 @@ export const generateEmail = asyncHandler(async (
     // Get event details if eventId provided
     let event = null;
     if (eventId) {
-      const eventIdNum = parseInt(eventId);
+      const eventIdNum = typeof eventId === 'number' ? eventId : parseInt(String(eventId));
       if (isNaN(eventIdNum) || eventIdNum <= 0) {
         throw new ApiError(400, 'Invalid eventId');
       }
@@ -218,12 +218,15 @@ export const generateEmail = asyncHandler(async (
           org: true,
         },
       });
+      if (!event && (type === "event_reminder" || type === "task_reminder" || type === "sponsor_thank_you" || type === "rsvp_confirmation")) {
+        throw new ApiError(404, 'Event not found');
+      }
     }
 
     // Get task details if taskId provided
     let task = null;
     if (taskId) {
-      const taskIdNum = parseInt(taskId);
+      const taskIdNum = typeof taskId === 'number' ? taskId : parseInt(String(taskId));
       if (isNaN(taskIdNum) || taskIdNum <= 0) {
         throw new ApiError(400, 'Invalid taskId');
       }
@@ -234,6 +237,9 @@ export const generateEmail = asyncHandler(async (
           assignee: true,
         },
       });
+      if (!task && (type === "task_assignment" || type === "task_reminder")) {
+        throw new ApiError(404, 'Task not found');
+      }
     }
 
     // Generate email based on type
@@ -284,16 +290,15 @@ Event Management Team
         break;
 
       case "task_reminder":
-        if (!task) {
-          throw new ApiError(400, "Task ID required for task reminder");
-        }
-        const dueDate = task.dueAt ? new Date(task.dueAt) : null;
-        const daysUntilDue = dueDate
-          ? Math.ceil((dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-          : null;
+        // If taskId is provided, generate reminder for specific task
+        if (taskId && task) {
+          const dueDate = task.dueAt ? new Date(task.dueAt) : null;
+          const daysUntilDue = dueDate
+            ? Math.ceil((dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+            : null;
 
-        emailContent.subject = `Reminder: Task "${task.title}" ${dueDate && daysUntilDue ? `due in ${daysUntilDue} day${daysUntilDue > 1 ? "s" : ""}` : "pending"}`;
-        emailContent.body = `
+          emailContent.subject = `Reminder: Task "${task.title}" ${dueDate && daysUntilDue ? `due in ${daysUntilDue} day${daysUntilDue > 1 ? "s" : ""}` : "pending"}`;
+          emailContent.body = `
 Dear ${recipientName || task.assignee?.fullName || "Volunteer"},
 
 This is a reminder about your assigned task:
@@ -312,7 +317,96 @@ Thank you!
 
 Best regards,
 Event Management Team
-        `.trim();
+          `.trim();
+        }
+        // If eventId is provided but no taskId, generate reminder for all tasks needing attention
+        else if (eventId && event) {
+          const eventIdNum = typeof eventId === 'number' ? eventId : parseInt(String(eventId));
+          // Get all tasks for this event that need reminders
+          const allTasks = await prisma.volunteerTask.findMany({
+            where: {
+              eventId: eventIdNum,
+              status: {
+                not: "Completed"
+              }
+            },
+            include: {
+              assignee: true,
+            },
+            orderBy: [
+              { dueAt: 'asc' },
+              { priority: 'desc' }
+            ]
+          });
+
+          if (allTasks.length === 0) {
+            throw new ApiError(404, "No tasks found that need reminders for this event");
+          }
+
+          // Filter tasks that are overdue or due soon (within 7 days)
+          const now = new Date();
+          const tasksNeedingReminder = allTasks.filter(t => {
+            if (!t.dueAt) return true; // Include tasks without due dates
+            const dueDate = new Date(t.dueAt);
+            const daysUntilDue = Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+            return daysUntilDue <= 7 || daysUntilDue < 0; // Due within 7 days or overdue
+          });
+
+          // If no tasks need reminders based on due dates, show all incomplete tasks (limit to 20)
+          const finalTasks = tasksNeedingReminder.length > 0 ? tasksNeedingReminder : allTasks.slice(0, 20);
+
+          // Generate summary email for event organizer
+          const overdueCount = finalTasks.filter(t => {
+            if (!t.dueAt) return false;
+            return new Date(t.dueAt) < now;
+          }).length;
+
+          const dueSoonCount = finalTasks.filter(t => {
+            if (!t.dueAt) return false;
+            const dueDate = new Date(t.dueAt);
+            const daysUntilDue = Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+            return daysUntilDue > 0 && daysUntilDue <= 7;
+          }).length;
+
+          const noDueDateCount = finalTasks.filter(t => !t.dueAt).length;
+
+          emailContent.subject = `Task Reminders: ${event.title} - ${finalTasks.length} task${finalTasks.length > 1 ? "s" : ""} need attention`;
+          emailContent.body = `
+Dear ${recipientName || "Event Organizer"},
+
+This is a summary of tasks for "${event.title}" that need attention:
+
+📊 Summary:
+- Total tasks needing attention: ${finalTasks.length}
+- Overdue tasks: ${overdueCount}
+- Tasks due within 7 days: ${dueSoonCount}
+${noDueDateCount > 0 ? `- Tasks without due dates: ${noDueDateCount}` : ''}
+
+📋 Tasks Needing Reminders:
+
+${finalTasks.map((t, idx) => {
+            const dueDate = t.dueAt ? new Date(t.dueAt) : null;
+            const daysUntilDue = dueDate
+              ? Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+              : null;
+            const statusIcon = dueDate && daysUntilDue !== null && daysUntilDue < 0 ? "🔴" :
+                             dueDate && daysUntilDue !== null && daysUntilDue <= 1 ? "🟡" : "🟠";
+
+            return `${idx + 1}. ${statusIcon} ${t.title}
+   - Priority: ${t.priority || "Medium"}
+   - Assignee: ${t.assignee?.fullName || "Unassigned"}
+   - ${dueDate ? `Due: ${dueDate.toLocaleDateString()} ${daysUntilDue !== null && daysUntilDue < 0 ? "(OVERDUE)" : daysUntilDue !== null && daysUntilDue <= 7 ? `(${daysUntilDue} day${daysUntilDue !== 1 ? "s" : ""} remaining)` : ""}` : "No due date"}
+   - Status: ${t.status}`;
+          }).join("\n\n")}
+
+${finalTasks.length > 0 ? "Please follow up with task assignees to ensure timely completion." : "All tasks are on track!"}
+
+Best regards,
+Event Management Team
+          `.trim();
+        } else {
+          throw new ApiError(400, "Either taskId or eventId is required for task reminder");
+        }
         break;
 
       case "sponsor_thank_you":

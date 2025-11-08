@@ -1,6 +1,7 @@
 "use client";
 
 import { useGetEventRisksQuery, useGenerateEmailMutation } from "@/state/api";
+import { useToast } from "@/components/Toast/ToastContainer";
 import React, { useState } from "react";
 import {
   AlertTriangle,
@@ -11,6 +12,7 @@ import {
   Copy,
   Check,
   Loader2,
+  X,
 } from "lucide-react";
 
 type Props = {
@@ -19,12 +21,16 @@ type Props = {
 
 const EventRiskAnalysis = ({ eventId }: Props) => {
   const { data: riskAnalysis, isLoading, error } = useGetEventRisksQuery(eventId);
-  const [generateEmail] = useGenerateEmailMutation();
+  const [generateEmail, { isLoading: isGeneratingEmail }] = useGenerateEmailMutation();
+  const { showToast } = useToast();
   const [generatedEmail, setGeneratedEmail] = useState<{
     subject: string;
     body: string;
+    to?: string;
   } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [showSendModal, setShowSendModal] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState("");
 
   const getRiskIcon = (severity: "low" | "medium" | "high") => {
     switch (severity) {
@@ -64,20 +70,52 @@ const EventRiskAnalysis = ({ eventId }: Props) => {
       const result = await generateEmail({
         type: type as any,
         eventId,
+        // For task_reminder, we pass eventId to get all tasks needing reminders
+        // For event_reminder, eventId is already passed
       }).unwrap();
       setGeneratedEmail({
         subject: result.email.subject,
         body: result.email.body,
+        to: result.email.to || "",
       });
-    } catch (error) {
+      showToast("Email generated successfully", "success");
+    } catch (error: any) {
       console.error("Error generating email:", error);
+      const errorMessage = error?.data?.error?.message || error?.message || "Failed to generate email";
+      showToast(errorMessage, "error");
     }
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
+    showToast("Email copied to clipboard", "success");
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSendEmail = () => {
+    if (!generatedEmail) return;
+
+    // Validate email if provided
+    if (recipientEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
+      showToast("Please enter a valid email address", "error");
+      return;
+    }
+
+    // In a real implementation, this would call an API to send the email
+    // For now, we'll show a success message
+    showToast(
+      recipientEmail
+        ? `Email would be sent to ${recipientEmail} (Email service integration required)`
+        : "Email sending requires email service integration (e.g., SendGrid, AWS SES)",
+      "info"
+    );
+
+    // Close modal after a brief delay
+    setTimeout(() => {
+      setShowSendModal(false);
+      setRecipientEmail("");
+    }, 2000);
   };
 
   if (isLoading) {
@@ -213,31 +251,47 @@ const EventRiskAnalysis = ({ eventId }: Props) => {
       )}
 
       {/* Quick Actions - Minimal Style */}
-      {riskAnalysis.risks.length > 0 && (
-        <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-black">
-          <h4 className="mb-4 text-sm font-medium text-gray-900 dark:text-gray-100">
-            Quick actions
-          </h4>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => handleGenerateEmail("event_reminder")}
-              className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-black dark:text-gray-300 dark:hover:bg-gray-900 dark:hover:text-gray-100"
-            >
-              <Mail className="h-3.5 w-3.5" />
-              Event reminder
-            </button>
-            {riskAnalysis.risks.some((r) => r.type === "overdue_tasks" || r.type === "tasks_due_soon") && (
-              <button
-                onClick={() => handleGenerateEmail("task_reminder")}
-                className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-black dark:text-gray-300 dark:hover:bg-gray-900 dark:hover:text-gray-100"
-              >
+      <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-black">
+        <h4 className="mb-4 text-sm font-medium text-gray-900 dark:text-gray-100">
+          Quick actions
+        </h4>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => handleGenerateEmail("event_reminder")}
+            disabled={isGeneratingEmail}
+            className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-700 dark:bg-black dark:text-gray-300 dark:hover:bg-gray-900 dark:hover:text-gray-100"
+          >
+            {isGeneratingEmail ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Mail className="h-3.5 w-3.5" />
+                Event reminder
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => handleGenerateEmail("task_reminder")}
+            disabled={isGeneratingEmail}
+            className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-700 dark:bg-black dark:text-gray-300 dark:hover:bg-gray-900 dark:hover:text-gray-100"
+          >
+            {isGeneratingEmail ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
                 <Mail className="h-3.5 w-3.5" />
                 Task reminders
-              </button>
+              </>
             )}
-          </div>
+          </button>
         </div>
-      )}
+      </div>
 
       {/* Generated Email Preview - Minimal Style */}
       {generatedEmail && (
@@ -246,22 +300,31 @@ const EventRiskAnalysis = ({ eventId }: Props) => {
             <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
               Generated email
             </h4>
-            <button
-              onClick={() => copyToClipboard(`${generatedEmail.subject}\n\n${generatedEmail.body}`)}
-              className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-black dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-100"
-            >
-              {copied ? (
-                <>
-                  <Check className="h-3.5 w-3.5" />
-                  Copied
-                </>
-              ) : (
-                <>
-                  <Copy className="h-3.5 w-3.5" />
-                  Copy
-                </>
-              )}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowSendModal(true)}
+                className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+              >
+                <Mail className="h-3.5 w-3.5" />
+                Send Email
+              </button>
+              <button
+                onClick={() => copyToClipboard(`${generatedEmail.subject}\n\n${generatedEmail.body}`)}
+                className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-black dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-100"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-3.5 w-3.5" />
+                    Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5" />
+                    Copy
+                  </>
+                )}
+              </button>
+            </div>
           </div>
           <div className="space-y-4">
             <div>
@@ -276,8 +339,75 @@ const EventRiskAnalysis = ({ eventId }: Props) => {
               <label className="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-500">
                 Body
               </label>
-              <div className="rounded-md border border-gray-200 bg-gray-50/50 p-3 text-sm text-gray-900 whitespace-pre-wrap dark:border-gray-800 dark:bg-gray-950 dark:text-gray-100">
+              <div className="max-h-64 overflow-y-auto rounded-md border border-gray-200 bg-gray-50/50 p-3 text-sm text-gray-900 whitespace-pre-wrap dark:border-gray-800 dark:bg-gray-950 dark:text-gray-100">
                 {generatedEmail.body}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Send Email Modal */}
+      {showSendModal && generatedEmail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-gray-800">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Send Email
+              </h3>
+              <button
+                onClick={() => {
+                  setShowSendModal(false);
+                  setRecipientEmail("");
+                }}
+                className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Recipient Email <span className="text-gray-400">(optional)</span>
+                </label>
+                <input
+                  type="email"
+                  value={recipientEmail}
+                  onChange={(e) => setRecipientEmail(e.target.value)}
+                  placeholder="recipient@example.com"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-900"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Leave empty to send to all event participants
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-gray-200 bg-gray-50/50 p-3 dark:border-gray-700 dark:bg-gray-900/50">
+                <div className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+                  Subject
+                </div>
+                <div className="text-sm text-gray-900 dark:text-gray-100">
+                  {generatedEmail.subject}
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    setShowSendModal(false);
+                    setRecipientEmail("");
+                  }}
+                  className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSendEmail}
+                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                >
+                  Send Email
+                </button>
               </div>
             </div>
           </div>

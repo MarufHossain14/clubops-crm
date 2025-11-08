@@ -3,10 +3,37 @@ import { prisma } from "../lib/prisma";
 import { asyncHandler } from "../middleware/errorHandler";
 import { ApiError } from "../middleware/errorHandler";
 
+// Type for RSVP with includes
+type RSVPWithRelations = {
+  id: number;
+  eventId: number;
+  memberId: number;
+  status: string;
+  checkedIn: boolean;
+  event: {
+    id: number;
+    title: string;
+    startsAt: Date;
+    endsAt: Date;
+    location: string | null;
+    status: string;
+    capacity: number | null;
+    orgId: number;
+  };
+  member: {
+    id: number;
+    fullName: string;
+    email: string;
+    role: string;
+    tags: string[];
+    orgId: number;
+  };
+};
+
 export const getRSVPs = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { eventId } = req.query;
 
-  const where = eventId ? { eventId: Number(eventId) } : {};
+  const where: { eventId?: number } = {};
 
   // Validate eventId if provided
   if (eventId) {
@@ -24,9 +51,9 @@ export const getRSVPs = asyncHandler(async (req: Request, res: Response): Promis
       event: true,
       member: true,
     },
-  });
+  }) as RSVPWithRelations[];
 
-  const transformedRSVPs = rsvps.map((rsvp) => ({
+  const transformedRSVPs = rsvps.map((rsvp: RSVPWithRelations) => ({
     id: rsvp.id,
     eventId: rsvp.eventId,
     memberId: rsvp.memberId,
@@ -51,9 +78,9 @@ export const getAllRSVPs = asyncHandler(async (req: Request, res: Response): Pro
       event: true,
       member: true,
     },
-  });
+  }) as RSVPWithRelations[];
 
-  const transformedRSVPs = rsvps.map((rsvp) => ({
+  const transformedRSVPs = rsvps.map((rsvp: RSVPWithRelations) => ({
     id: rsvp.id,
     eventId: rsvp.eventId,
     memberId: rsvp.memberId,
