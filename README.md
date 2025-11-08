@@ -24,7 +24,7 @@ Ensure you have these tools installed:
 1. **Clone the repository:**
    ```bash
    git clone [git url]
-   cd entrystact-v1
+   cd [the cloned folder name]
    ```
 
 2. **Install dependencies in both client and server:**
