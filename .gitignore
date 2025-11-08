@@ -7,3 +7,4 @@ server/.env
 client/.next/
 
 node_modules
+docs

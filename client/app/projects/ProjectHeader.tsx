@@ -7,6 +7,8 @@ import {
   PlusSquare,
   Share2,
   Table,
+  Calendar,
+  AlertTriangle,
 } from "lucide-react";
 import React, { useState } from "react";
 import ModalNewProject from "./ModalNewProject";
@@ -14,9 +16,11 @@ import ModalNewProject from "./ModalNewProject";
 type Props = {
   activeTab: string;
   setActiveTab: (tabName: string) => void;
+  projectName?: string;
+  projectId?: number;
 };
 
-const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
+const ProjectHeader = ({ activeTab, setActiveTab, projectName = "Project", projectId }: Props) => {
   const [isModalNewProjectOpen, setIsModalNewProjectOpen] = useState(false);
 
   return (
@@ -27,20 +31,25 @@ const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
       />
       <div className="pb-6 pt-6 lg:pb-4 lg:pt-8">
         <Header
-          name="Product Design Development"
+          name={projectName}
           buttonComponent={
             <button
-              className="flex items-center rounded-md bg-blue-primary px-3 py-2 text-white hover:bg-blue-600"
+              className="flex items-center rounded-md bg-blue-600 px-3 py-2 text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
               onClick={() => setIsModalNewProjectOpen(true)}
             >
-              <PlusSquare className="mr-2 h-5 w-5" /> New Boards
+              <PlusSquare className="mr-2 h-5 w-5" /> New Project
             </button>
           }
         />
+        {projectId && (
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            Project ID: {projectId}
+          </p>
+        )}
       </div>
 
       {/* TABS */}
-      <div className="flex flex-wrap-reverse gap-2 border-y border-gray-200 pb-[8px] pt-2 dark:border-stroke-dark md:items-center">
+      <div className="flex flex-wrap-reverse gap-2 border-y border-gray-200 pb-[8px] pt-2 dark:border-gray-700 md:items-center">
         <div className="flex flex-1 items-center gap-2 md:gap-4">
           <TabButton
             name="Board"
@@ -66,21 +75,33 @@ const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
             setActiveTab={setActiveTab}
             activeTab={activeTab}
           />
+          <TabButton
+            name="Event Details"
+            icon={<Calendar className="h-5 w-5" />}
+            setActiveTab={setActiveTab}
+            activeTab={activeTab}
+          />
+          <TabButton
+            name="Risk Analysis"
+            icon={<AlertTriangle className="h-5 w-5" />}
+            setActiveTab={setActiveTab}
+            activeTab={activeTab}
+          />
         </div>
         <div className="flex items-center gap-2">
-          <button className="text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300">
+          <button className="text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300">
             <Filter className="h-5 w-5" />
           </button>
-          <button className="text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300">
+          <button className="text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300">
             <Share2 className="h-5 w-5" />
           </button>
           <div className="relative">
             <input
               type="text"
               placeholder="Search Task"
-              className="rounded-md border py-1 pl-10 pr-4 focus:outline-none dark:border-dark-secondary dark:bg-dark-secondary dark:text-white"
+              className="rounded-md border border-gray-300 bg-white py-1 pl-10 pr-4 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500"
             />
-            <Grid3x3 className="absolute left-3 top-2 h-4 w-4 text-gray-400 dark:text-neutral-500" />
+            <Grid3x3 className="absolute left-3 top-2 h-4 w-4 text-gray-400 dark:text-gray-500" />
           </div>
         </div>
       </div>
@@ -100,7 +121,7 @@ const TabButton = ({ name, icon, setActiveTab, activeTab }: TabButtonProps) => {
 
   return (
     <button
-      className={`relative flex items-center gap-2 px-1 py-2 text-gray-500 after:absolute after:-bottom-[9px] after:left-0 after:h-[1px] after:w-full hover:text-blue-600 dark:text-neutral-500 dark:hover:text-white sm:px-2 lg:px-4 ${
+      className={`relative flex items-center gap-2 px-1 py-2 text-gray-500 after:absolute after:-bottom-[9px] after:left-0 after:h-[1px] after:w-full hover:text-blue-600 dark:text-gray-400 dark:hover:text-white sm:px-2 lg:px-4 ${
         isActive ? "text-blue-600 after:bg-blue-600 dark:text-white" : ""
       }`}
       onClick={() => setActiveTab(name)}

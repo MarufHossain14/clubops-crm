@@ -14,8 +14,28 @@ export const getProjects = async (
         rsvps: true,
         volunteerTasks: true,
       },
+      orderBy: {
+        id: 'asc',
+      },
     });
-    res.json(events);
+
+    // Transform events to match frontend Project interface
+    const projects = events.map((event) => ({
+      id: event.id,
+      title: event.title,
+      name: event.title, // Some components use 'name' instead of 'title'
+      startsAt: event.startsAt.toISOString(),
+      endsAt: event.endsAt.toISOString(),
+      location: event.location || undefined,
+      status: event.status,
+      capacity: event.capacity || undefined,
+      orgId: event.orgId,
+      org: event.org,
+      rsvps: event.rsvps,
+      volunteerTasks: event.volunteerTasks,
+    }));
+
+    res.json(projects);
   } catch (error: any) {
     console.error("Error retrieving events:", error);
     res

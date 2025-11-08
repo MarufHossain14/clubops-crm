@@ -60,11 +60,11 @@ const Search = () => {
       {/* Search Input */}
       <div className="mt-6">
         <div className="relative max-w-2xl">
-          <SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+          <SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             placeholder="Search for tasks, projects, or users... (min 3 characters)"
-            className="w-full rounded-lg border-2 border-gray-300 bg-white py-3 pl-12 pr-4 text-gray-900 shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-dark-secondary dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-400"
+            className="w-full rounded-lg border-2 border-gray-300 bg-white py-3 pl-12 pr-4 text-gray-900 shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-400"
             onChange={handleSearchChange}
           />
         </div>
@@ -106,8 +106,8 @@ const Search = () => {
 
         {/* No Results State */}
         {showNoResults && (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white py-16 text-center dark:border-stroke-dark dark:bg-dark-secondary">
-            <div className="mb-4 rounded-full bg-gray-100 p-6 dark:bg-dark-tertiary">
+          <div className="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white py-16 text-center dark:border-gray-700 dark:bg-gray-800">
+            <div className="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-700">
               <SearchIcon className="h-12 w-12 text-gray-400 dark:text-gray-500" />
             </div>
             <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
@@ -178,7 +178,7 @@ const Search = () => {
 
         {/* Initial State - No Search Yet */}
         {searchTerm.length === 0 && !isLoading && !isError && (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white py-16 text-center dark:border-stroke-dark dark:bg-dark-secondary">
+          <div className="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white py-16 text-center dark:border-gray-700 dark:bg-gray-800">
             <div className="mb-4 rounded-full bg-blue-100 p-6 dark:bg-blue-900/20">
               <SearchIcon className="h-12 w-12 text-blue-500 dark:text-blue-400" />
             </div>

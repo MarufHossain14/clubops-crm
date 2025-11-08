@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-// import { fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
+import { getClerkToken } from "@/lib/clerkAuth";
 
 export interface Project {
   id: number;
@@ -54,6 +54,7 @@ export interface Task {
   id: number;
   title: string;
   status: string;
+  priority?: Priority | string;
   dueAt?: string;
   eventId: number;
   orgId: number;
@@ -110,42 +111,82 @@ export interface Sponsor {
   stage: string;
   pledged?: number;
   received?: number;
+  org?: Org;
+}
+
+export interface RSVP {
+  id: number;
+  eventId: number;
+  memberId: number;
+  status: string;
+  checkedIn: boolean;
+  event?: Project;
+  member?: {
+    id: number;
+    fullName: string;
+    email: string;
+    role: string;
+  };
+}
+
+export interface EventRisk {
+  type: string;
+  severity: "low" | "medium" | "high";
+  message: string;
+  suggestion: string;
+  data?: any;
+}
+
+export interface EventRiskAnalysis {
+  eventId: number;
+  eventTitle: string;
+  riskLevel: "low" | "medium" | "high";
+  riskScore: number;
+  risks: EventRisk[];
+  summary: {
+    totalRisks: number;
+    highRisks: number;
+    mediumRisks: number;
+    lowRisks: number;
+  };
+}
+
+export interface GeneratedEmail {
+  subject: string;
+  body: string;
+  to: string;
+}
+
+export interface EmailGenerationRequest {
+  type: "event_reminder" | "task_assignment" | "task_reminder" | "sponsor_thank_you" | "rsvp_confirmation";
+  eventId?: number;
+  taskId?: number;
+  memberId?: number;
+  recipientEmail?: string;
+  recipientName?: string;
 }
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000',
     prepareHeaders: async (headers) => {
-      // AWS Amplify auth commented out
-      // const session = await fetchAuthSession();
-      // const { accessToken } = session.tokens ?? {};
-      // if (accessToken) {
-      //   headers.set("Authorization", `Bearer ${accessToken}`);
-      // }
+      // Get Clerk token and add to Authorization header
+      const token = await getClerkToken();
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
       return headers;
     },
   }),
   reducerPath: "api",
-  tagTypes: ["Projects", "Tasks", "Users", "Teams"],
+  tagTypes: ["Projects", "Tasks", "Users", "Teams", "RSVPs", "Sponsors"],
   endpoints: (build) => ({
     getAuthUser: build.query({
-      queryFn: async (_, _queryApi, _extraoptions, fetchWithBQ) => {
-        // AWS Amplify auth commented out
-        // try {
-        //   const user = await getCurrentUser();
-        //   const session = await fetchAuthSession();
-        //   if (!session) throw new Error("No session found");
-        //   const { userSub } = session;
-        //   const { accessToken } = session.tokens ?? {};
-        //
-        //   const userDetailsResponse = await fetchWithBQ(`users/${userSub}`);
-        //   const userDetails = userDetailsResponse.data as User;
-        //
-        //   return { data: { user, userSub, userDetails } };
-        // } catch (error: any) {
-        //   return { error: error.message || "Could not fetch user data" };
-        // }
-        return { error: "AWS Amplify auth is disabled" };
+      queryFn: async () => {
+        // Clerk auth - user info is available from Clerk's useUser hook
+        // This endpoint is kept for compatibility but returns null
+        // Use Clerk's useUser() hook in components instead
+        return { data: null };
       },
     }),
     getProjects: build.query<Project[], void>({
@@ -160,6 +201,13 @@ export const api = createApi({
       }),
       invalidatesTags: ["Projects"],
     }),
+    getAllTasks: build.query<Task[], void>({
+      query: () => "tasks/all",
+      providesTags: (result) =>
+        result
+          ? result.map(({ id }) => ({ type: "Tasks" as const, id }))
+          : [{ type: "Tasks" as const }],
+    }),
     getTasks: build.query<Task[], { eventId: number }>({
       query: ({ eventId }) => `tasks?eventId=${eventId}`,
       providesTags: (result) =>
@@ -173,6 +221,14 @@ export const api = createApi({
         result
           ? result.map(({ id }) => ({ type: "Tasks", id }))
           : [{ type: "Tasks", id: memberId }],
+    }),
+    getRSVPs: build.query<RSVP[], { eventId?: number }>({
+      query: ({ eventId }) => eventId ? `rsvps?eventId=${eventId}` : "rsvps/all",
+      providesTags: ["RSVPs"],
+    }),
+    getSponsors: build.query<Sponsor[], { orgId?: number }>({
+      query: ({ orgId }) => orgId ? `sponsors?orgId=${orgId}` : "sponsors/all",
+      providesTags: ["Sponsors"],
     }),
     createTask: build.mutation<Task, Partial<Task>>({
       query: (task) => ({
@@ -203,12 +259,27 @@ export const api = createApi({
     search: build.query<SearchResults, string>({
       query: (query) => `search?query=${encodeURIComponent(query)}`,
     }),
+    // AI Features
+    getEventRisks: build.query<EventRiskAnalysis, number>({
+      query: (eventId) => `ai/events/${eventId}/risks`,
+    }),
+    getAllEventsWithRisks: build.query<Array<{ eventId: number; eventTitle: string; riskLevel: string; riskCount: number }>, void>({
+      query: () => "ai/events/risks",
+    }),
+    generateEmail: build.mutation<{ success: boolean; email: GeneratedEmail; generatedAt: string }, EmailGenerationRequest>({
+      query: (body) => ({
+        url: "ai/email/generate",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
 export const {
   useGetProjectsQuery,
   useCreateProjectMutation,
+  useGetAllTasksQuery,
   useGetTasksQuery,
   useCreateTaskMutation,
   useUpdateTaskStatusMutation,
@@ -217,4 +288,9 @@ export const {
   useGetTeamsQuery,
   useGetTasksByUserQuery,
   useGetAuthUserQuery,
+  useGetRSVPsQuery,
+  useGetSponsorsQuery,
+  useGetEventRisksQuery,
+  useGetAllEventsWithRisksQuery,
+  useGenerateEmailMutation,
 } = api;

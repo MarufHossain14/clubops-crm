@@ -8,8 +8,7 @@ import { dataGridClassNames, dataGridSxStyles } from "@/lib/utils";
 import {
   Priority,
   Task,
-  useGetProjectsQuery,
-  useGetTasksQuery,
+  useGetAllTasksQuery,
 } from "@/state/api";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { format } from "date-fns";
@@ -195,7 +194,7 @@ const createColumns = (priority: Priority, isDarkMode: boolean): GridColDef[] =>
       },
     },
     {
-      field: "projectId",
+      field: "eventId",
       headerName: "Project ID",
       width: 100,
       renderCell: (params) => (
@@ -207,112 +206,44 @@ const createColumns = (priority: Priority, isDarkMode: boolean): GridColDef[] =>
   ];
 };
 
-// Component to fetch tasks for a single project
-const ProjectTasksFetcher = ({
-  projectId,
-  onTasksLoaded,
-  onError
-}: {
-  projectId: number;
-  onTasksLoaded: (projectId: number, tasks: Task[]) => void;
-  onError?: (projectId: number) => void;
-}) => {
-  const { data: tasks, error } = useGetTasksQuery({ projectId });
-
-  React.useEffect(() => {
-    if (tasks) {
-      onTasksLoaded(projectId, tasks);
-    }
-  }, [tasks, projectId, onTasksLoaded]);
-
-  React.useEffect(() => {
-    if (error && onError) {
-      onError(projectId);
-    }
-  }, [error, projectId, onError]);
-
-  return null;
-};
-
 const ReusablePriorityPage = ({ priority }: Props) => {
   const [view, setView] = useState("list");
   const [isModalNewTaskOpen, setIsModalNewTaskOpen] = useState(false);
-  const [allTasks, setAllTasks] = useState<Task[]>([]);
-  const [loadedProjectIds, setLoadedProjectIds] = useState<Set<number>>(new Set());
-  const [errorProjects, setErrorProjects] = useState<Set<number>>(new Set());
 
-  // Fetch all projects
-  const { data: projects, isLoading: isLoadingProjects, error: projectsError } = useGetProjectsQuery();
-
-  // Callback to handle tasks loaded from a project
-  const handleTasksLoaded = React.useCallback((projectId: number, tasks: Task[]) => {
-    setAllTasks((prev) => {
-      // Remove old tasks for this project and add new ones
-      const filtered = prev.filter(t => t.projectId !== projectId);
-      return [...filtered, ...tasks];
-    });
-    setLoadedProjectIds((prev) => new Set(prev).add(projectId));
-    setErrorProjects((prev) => {
-      const next = new Set(prev);
-      next.delete(projectId);
-      return next;
-    });
-  }, []);
-
-  // Callback to handle errors
-  const handleError = React.useCallback((projectId: number) => {
-    setErrorProjects((prev) => new Set(prev).add(projectId));
-    setLoadedProjectIds((prev) => {
-      const next = new Set(prev);
-      next.add(projectId); // Mark as "loaded" (even if with error) to stop loading state
-      return next;
-    });
-  }, []);
+  // Fetch all tasks at once (much more efficient)
+  const { data: allTasks, isLoading, error: tasksError } = useGetAllTasksQuery();
 
   // Filter tasks by priority
   const filteredTasks = useMemo(() => {
+    if (!allTasks) return [];
     return allTasks.filter((task: Task) => task.priority === priority);
   }, [allTasks, priority]);
 
   const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
 
-  // Check if all projects have loaded their tasks
-  const isLoadingTasks = projects && projects.length > 0
-    ? projects.some(p => !loadedProjectIds.has(p.id))
-    : false;
-  const isLoading = isLoadingProjects || isLoadingTasks;
-
-  if (projectsError) {
+  if (tasksError) {
+    console.error("Error fetching all tasks:", tasksError);
     return (
       <div className="p-4 text-red-500">
-        <p>Error fetching projects</p>
-        <p className="text-sm mt-2">Please try again later</p>
+        <p>Error fetching tasks</p>
+        <p className="text-sm mt-2">
+          {tasksError && "status" in tasksError
+            ? `Status: ${tasksError.status}`
+            : "Please try again later"}
+        </p>
+        {tasksError && "data" in tasksError && (
+          <p className="text-xs mt-1">
+            {typeof tasksError.data === "string"
+              ? tasksError.data
+              : JSON.stringify(tasksError.data)}
+          </p>
+        )}
       </div>
     );
   }
 
-  const hasTaskErrors = errorProjects.size > 0;
-
   return (
     <div className="m-5 p-4">
-      {/* Fetch tasks for all projects */}
-      {projects?.map((project) => (
-        <ProjectTasksFetcher
-          key={project.id}
-          projectId={project.id}
-          onTasksLoaded={handleTasksLoaded}
-          onError={handleError}
-        />
-      ))}
-
-      {/* Error warning if some projects failed to load */}
-      {hasTaskErrors && !isLoading && (
-        <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">
-          <p className="text-sm">
-            Warning: Could not load tasks from {errorProjects.size} project(s). Some tasks may be missing.
-          </p>
-        </div>
-      )}
 
       <ModalNewTask
         isOpen={isModalNewTaskOpen}
@@ -385,8 +316,8 @@ const ReusablePriorityPage = ({ priority }: Props) => {
           <div className="text-gray-500 dark:text-gray-400">Loading tasks...</div>
         </div>
       ) : filteredTasks.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white py-16 text-center dark:border-stroke-dark dark:bg-dark-secondary">
-          <div className="mb-4 rounded-full bg-gray-100 p-6 dark:bg-dark-tertiary">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white py-16 text-center dark:border-gray-700 dark:bg-gray-800">
+          <div className="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-700">
             <svg
               className="h-12 w-12 text-gray-400 dark:text-gray-500"
               fill="none"
@@ -412,7 +343,7 @@ const ReusablePriorityPage = ({ priority }: Props) => {
         // Enhanced List View with Priority Styling
         <div className={`overflow-hidden rounded-xl border-2 shadow-lg ${getPriorityColors(priority).border} ${getPriorityColors(priority).bg}`}>
           {/* List Header with Priority Accent */}
-          <div className={`border-b-2 ${getPriorityColors(priority).border} bg-white/80 dark:bg-dark-secondary/80 backdrop-blur-sm px-6 py-4`}>
+          <div className={`border-b-2 ${getPriorityColors(priority).border} bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm px-6 py-4`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className={`h-3 w-3 rounded-full ${getPriorityColors(priority).accent}`} />
@@ -435,13 +366,13 @@ const ReusablePriorityPage = ({ priority }: Props) => {
           </div>
 
           {/* List Items with Enhanced Styling */}
-          <div className="divide-y divide-gray-200/50 dark:divide-stroke-dark/50 bg-white dark:bg-dark-secondary">
+          <div className="divide-y divide-gray-200/50 dark:divide-gray-700/50 bg-white dark:bg-gray-800">
             {filteredTasks.map((task: Task, index: number) => (
               <div
                 key={task.id}
                 className={`group relative transition-all hover:shadow-md ${
                   index % 2 === 0
-                    ? "bg-white dark:bg-dark-secondary"
+                    ? "bg-white dark:bg-gray-800"
                     : `${getPriorityColors(priority).bg}`
                 }`}
               >
@@ -455,7 +386,7 @@ const ReusablePriorityPage = ({ priority }: Props) => {
         // Enhanced Table View with Priority Styling
         view === "table" && (
           <div className={`rounded-xl border-2 shadow-lg overflow-hidden ${getPriorityColors(priority).border} ${getPriorityColors(priority).bg}`}>
-            <div className="bg-white dark:bg-dark-secondary p-4">
+            <div className="bg-white dark:bg-gray-800 p-4">
               <DataGrid
                 rows={filteredTasks}
                 columns={createColumns(priority, isDarkMode)}

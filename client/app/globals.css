@@ -28,3 +28,89 @@ html.dark {
   background-color: #101214;
   color: #ffffff;
 }
+
+/* Custom Scrollbar Styles */
+.overflow-y-auto::-webkit-scrollbar,
+.overflow-x-auto::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track,
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb,
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover,
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.dark .overflow-y-auto::-webkit-scrollbar-thumb,
+.dark .overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+.dark .overflow-y-auto::-webkit-scrollbar-thumb:hover,
+.dark .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Simple Gantt Chart Styles */
+.gantt-container {
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+/* Minimal dark mode support for Gantt chart */
+.dark .gantt-container,
+.dark .gantt-container * {
+  color-scheme: dark;
+}
+
+/* Fix DataGrid white areas in dark mode */
+.dark .MuiDataGrid-root,
+.dark .MuiDataGrid-root *,
+.dark .MuiDataGrid-columnHeaders,
+.dark .MuiDataGrid-columnHeaders *,
+.dark .MuiDataGrid-columnHeaderRow,
+.dark .MuiDataGrid-columnHeaderRow *,
+.dark .MuiDataGrid-filler,
+.dark .MuiDataGrid-columnHeader--empty,
+.dark .MuiDataGrid-columnHeader:empty,
+.dark .MuiDataGrid-columnHeader:last-child {
+  background-color: #111827 !important;
+  background: #111827 !important;
+  color: #e5e7eb !important;
+}
+
+.dark .MuiDataGrid-main,
+.dark .MuiDataGrid-virtualScroller,
+.dark .MuiDataGrid-virtualScrollerContent,
+.dark .MuiDataGrid-virtualScrollerRenderZone {
+  background-color: #1f2937 !important;
+  background: #1f2937 !important;
+}
+
+.dark .MuiDataGrid-container--top {
+  background-color: #111827 !important;
+  background: #111827 !important;
+}
+
+/* Fix for select option elements in dark mode */
+.dark select option {
+  background-color: #1f2937 !important;
+  color: #e5e7eb !important;
+}
+
+select option {
+  background-color: #ffffff;
+  color: #18181b;
+}
+

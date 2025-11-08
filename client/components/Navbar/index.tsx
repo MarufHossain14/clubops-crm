@@ -3,9 +3,8 @@ import { Menu, Moon, Search, Settings, Sun, User } from "lucide-react";
 import Link from "next/link";
 import { useAppDispatch, useAppSelector } from "@/app/redux";
 import { setIsDarkMode, setIsSidebarCollapsed } from "@/state";
-import { useGetAuthUserQuery } from "@/state/api";
-// import { signOut } from "aws-amplify/auth";
-import Image from "next/image";
+import { UserButton, SignedIn, SignedOut, SignInButton, SignUpButton } from '@clerk/nextjs';
+import { useUser } from '@clerk/nextjs';
 
 const Navbar = () => {
   const dispatch = useAppDispatch();
@@ -13,33 +12,18 @@ const Navbar = () => {
     (state) => state.global.isSidebarCollapsed,
   );
   const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
-
-  const { data: currentUser } = useGetAuthUserQuery({});
-  const handleSignOut = async () => {
-    // AWS Amplify auth commented out
-    // try {
-    //   await signOut();
-    // } catch (error) {
-    //   console.error("Error signing out: ", error);
-    // }
-    console.log("Sign out clicked (AWS auth disabled)");
-  };
-
-  // Commented out to allow app to render without auth
-  // if (!currentUser) return null;
-  const currentUserDetails = currentUser?.userDetails;
+  const { user } = useUser();
 
   return (
     <div className="flex items-center justify-between bg-white px-4 py-3 dark:bg-black">
       {/* Search Bar */}
       <div className="flex items-center gap-8">
-        {!isSidebarCollapsed ? null : (
-          <button
-            onClick={() => dispatch(setIsSidebarCollapsed(!isSidebarCollapsed))}
-          >
-            <Menu className="h-8 w-8 dark:text-white" />
-          </button>
-        )}
+        <button
+          onClick={() => dispatch(setIsSidebarCollapsed(!isSidebarCollapsed))}
+          className="md:hidden"
+        >
+          <Menu className="h-8 w-8 dark:text-white" />
+        </button>
         <div className="relative flex h-min w-[200px]">
           <Search className="absolute left-[4px] top-1/2 mr-2 h-5 w-5 -translate-y-1/2 transform cursor-pointer dark:text-white" />
           <input
@@ -76,30 +60,36 @@ const Navbar = () => {
         >
           <Settings className="h-6 w-6 cursor-pointer dark:text-white" />
         </Link>
-        <div className="ml-2 mr-5 hidden min-h-[2em] w-[0.1rem] bg-gray-200 md:inline-block"></div>
-        <div className="hidden items-center justify-between md:flex">
-          <div className="align-center flex h-9 w-9 justify-center">
-            {!!currentUserDetails?.profilePictureUrl ? (
-              <Image
-                src={`https://pm-s3-images.s3.us-east-2.amazonaws.com/${currentUserDetails?.profilePictureUrl}`}
-                alt={currentUserDetails?.username || "User Profile Picture"}
-                width={100}
-                height={50}
-                className="h-full rounded-full object-cover"
+        <div className="ml-2 mr-5 hidden min-h-[2em] w-[0.1rem] bg-gray-200 dark:bg-gray-700 md:inline-block"></div>
+        <div className="hidden items-center justify-center md:flex">
+          <SignedIn>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-800 dark:text-gray-200">
+                {user?.firstName || user?.emailAddresses[0]?.emailAddress || 'User'}
+              </span>
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox: "h-9 w-9",
+                  },
+                }}
               />
-            ) : (
-              <User className="h-6 w-6 cursor-pointer self-center rounded-full dark:text-white" />
-            )}
-          </div>
-          <span className="mx-3 text-gray-800 dark:text-white">
-            {currentUserDetails?.username}
-          </span>
-          <button
-            className="hidden rounded bg-blue-400 px-4 py-2 text-xs font-bold text-white hover:bg-blue-500 md:block"
-            onClick={handleSignOut}
-          >
-            Sign out
-          </button>
+            </div>
+          </SignedIn>
+          <SignedOut>
+            <div className="flex items-center gap-2">
+              <SignInButton mode="modal">
+                <button className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-black dark:text-gray-300 dark:hover:bg-gray-900">
+                  Sign In
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600">
+                  Sign Up
+                </button>
+              </SignUpButton>
+            </div>
+          </SignedOut>
         </div>
       </div>
     </div>

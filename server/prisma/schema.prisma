@@ -80,6 +80,7 @@ model VolunteerTask {
   eventId          Int
   title            String
   status           String
+  priority         String?      // Urgent, High, Medium, Low, Backlog
   dueAt            DateTime?
   assigneeMemberId Int?
   event            Event        @relation(fields: [eventId], references: [id])

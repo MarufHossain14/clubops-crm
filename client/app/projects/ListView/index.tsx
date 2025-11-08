@@ -1,7 +1,8 @@
 import Header from "@/components/Header";
 import TaskCard from "@/components/TaskCard";
+import TaskDetailModal from "@/components/TaskDetailModal";
 import { Task, useGetTasksQuery } from "@/state/api";
-import React from "react";
+import React, { useState } from "react";
 
 type Props = {
   id: string;
@@ -9,27 +10,43 @@ type Props = {
 };
 
 const ListView = ({ id, setIsModalNewTaskOpen }: Props) => {
-  const projectId = Number(id);
+  const eventId = Number(id);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false);
+
   const {
     data: tasks,
     error,
     isLoading,
   } = useGetTasksQuery(
-    { projectId },
-    { skip: isNaN(projectId) || projectId <= 0 }
+    { eventId },
+    { skip: isNaN(eventId) || eventId <= 0 }
   );
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center p-4">
+        <div className="text-lg text-gray-600 dark:text-gray-400">Loading tasks...</div>
+      </div>
+    );
+  }
   if (error) {
     console.error("Error fetching tasks:", error);
     return (
-      <div className="p-4 text-red-500">
-        <p>An error occurred while fetching tasks</p>
-        <p className="text-sm mt-2">
-          {"status" in error ? `Status: ${error.status}` : ""}
-          {"data" in error && error.data ? JSON.stringify(error.data) : ""}
-          {"error" in error ? String(error.error) : ""}
+      <div className="p-4">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-900/20">
+          <h3 className="mb-2 font-semibold text-red-800 dark:text-red-400">
+            Error fetching tasks
+          </h3>
+          <p className="text-sm text-red-600 dark:text-red-500">
+            {"status" in error ? `Status: ${error.status}` : "An error occurred while fetching tasks"}
+          </p>
+          {"data" in error && error.data && (
+            <p className="mt-2 text-xs text-red-600 dark:text-red-500">
+              {typeof error.data === "string" ? error.data : JSON.stringify(error.data)}
         </p>
+          )}
+        </div>
       </div>
     );
   }
@@ -41,7 +58,7 @@ const ListView = ({ id, setIsModalNewTaskOpen }: Props) => {
           name="List"
           buttonComponent={
             <button
-              className="flex items-center rounded bg-blue-primary px-3 py-2 text-white hover:bg-blue-600"
+              className="flex items-center rounded bg-blue-600 px-3 py-2 text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
               onClick={() => setIsModalNewTaskOpen(true)}
             >
               Add Task
@@ -51,9 +68,9 @@ const ListView = ({ id, setIsModalNewTaskOpen }: Props) => {
         />
       </div>
       {tasks && tasks.length > 0 ? (
-        <div className="mt-6 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-stroke-dark dark:bg-dark-secondary">
+        <div className="mt-6 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
           {/* List Header */}
-          <div className="border-b border-gray-200 bg-gray-50 px-6 py-3 dark:border-stroke-dark dark:bg-dark-tertiary">
+          <div className="border-b border-gray-200 bg-gray-50 px-6 py-3 dark:border-gray-700 dark:bg-gray-700">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-6">
                 <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
@@ -70,15 +87,24 @@ const ListView = ({ id, setIsModalNewTaskOpen }: Props) => {
           </div>
 
           {/* List Items */}
-          <div className="divide-y divide-gray-200 dark:divide-stroke-dark">
+          <div className="divide-y divide-gray-200 dark:divide-gray-700">
             {tasks.map((task: Task) => (
-              <TaskCard key={task.id} task={task} />
+              <div
+                key={task.id}
+                onClick={() => {
+                  setSelectedTask(task);
+                  setIsTaskDetailOpen(true);
+                }}
+                className="cursor-pointer"
+              >
+                <TaskCard task={task} />
+              </div>
             ))}
           </div>
         </div>
       ) : (
-        <div className="mt-6 flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white py-16 text-center dark:border-stroke-dark dark:bg-dark-secondary">
-          <div className="mb-4 rounded-full bg-gray-100 p-6 dark:bg-dark-tertiary">
+        <div className="mt-6 flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white py-16 text-center dark:border-gray-700 dark:bg-gray-800">
+          <div className="mb-4 rounded-full bg-gray-100 p-6 dark:bg-gray-700">
             <svg
               className="h-12 w-12 text-gray-400 dark:text-gray-500"
               fill="none"
@@ -107,6 +133,14 @@ const ListView = ({ id, setIsModalNewTaskOpen }: Props) => {
           </button>
         </div>
       )}
+      <TaskDetailModal
+        task={selectedTask}
+        isOpen={isTaskDetailOpen}
+        onClose={() => {
+          setIsTaskDetailOpen(false);
+          setSelectedTask(null);
+        }}
+      />
     </div>
   );
 };

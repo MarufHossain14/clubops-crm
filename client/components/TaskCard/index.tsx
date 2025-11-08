@@ -49,7 +49,7 @@ const TaskCard = ({ task }: Props) => {
   };
 
   return (
-    <div className="group border-b border-gray-200 bg-white px-6 py-4 transition-colors hover:bg-gray-50 dark:border-stroke-dark dark:bg-dark-secondary dark:hover:bg-dark-tertiary">
+    <div className="group border-b border-gray-200 bg-white px-6 py-4 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700/50">
       <div className="flex items-start gap-4">
         {/* Left: Checkbox or Status Indicator */}
         <div className="flex-shrink-0 pt-1">
@@ -117,7 +117,7 @@ const TaskCard = ({ task }: Props) => {
                     <Tag size={14} />
                     <div className="flex items-center gap-1.5">
                       {taskTagsSplit.slice(0, 2).map((tag, index) => (
-                        <span key={index} className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-dark-tertiary text-gray-700 dark:text-gray-300">
+                        <span key={index} className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
                           {tag.trim()}
                         </span>
                       ))}
@@ -157,17 +157,17 @@ const TaskCard = ({ task }: Props) => {
                         alt={task.assignee.username}
                         width={32}
                         height={32}
-                        className="h-8 w-8 rounded-full border-2 border-white object-cover dark:border-dark-secondary"
+                        className="h-8 w-8 rounded-full border-2 border-white object-cover dark:border-gray-800"
                         title={task.assignee.username}
                       />
                     ) : (
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-gray-200 dark:border-dark-secondary dark:bg-dark-tertiary">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-gray-200 dark:border-gray-800 dark:bg-gray-700">
                         <User size={14} className="text-gray-500 dark:text-gray-400" />
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-gray-100 dark:border-dark-secondary dark:bg-dark-tertiary">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-gray-100 dark:border-gray-800 dark:bg-gray-700">
                     <User size={14} className="text-gray-400 dark:text-gray-500" />
                   </div>
                 )}
@@ -180,11 +180,11 @@ const TaskCard = ({ task }: Props) => {
                         alt={task.author.username}
                         width={32}
                         height={32}
-                        className="h-8 w-8 rounded-full border-2 border-white object-cover dark:border-dark-secondary"
+                        className="h-8 w-8 rounded-full border-2 border-white object-cover dark:border-gray-800"
                         title={task.author.username}
                       />
                     ) : (
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-gray-200 dark:border-dark-secondary dark:bg-dark-tertiary">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-gray-200 dark:border-gray-800 dark:bg-gray-700">
                         <User size={14} className="text-gray-500 dark:text-gray-400" />
                       </div>
                     )}

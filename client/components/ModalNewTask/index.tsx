@@ -25,46 +25,90 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
   const handleSubmit = async () => {
     if (!title || !authorUserId || !(id !== null || projectId)) return;
 
-    const formattedStartDate = formatISO(new Date(startDate), {
-      representation: "complete",
-    });
-    const formattedDueDate = formatISO(new Date(dueDate), {
-      representation: "complete",
-    });
+    try {
+      const formattedStartDate = startDate
+        ? formatISO(new Date(startDate), {
+            representation: "complete",
+          })
+        : undefined;
+      const formattedDueDate = dueDate
+        ? formatISO(new Date(dueDate), {
+            representation: "complete",
+          })
+        : undefined;
 
-    await createTask({
-      title,
-      description,
-      status,
-      priority,
-      tags,
-      startDate: formattedStartDate,
-      dueDate: formattedDueDate,
-      authorUserId: parseInt(authorUserId),
-      assignedUserId: parseInt(assignedUserId),
-      projectId: id !== null ? Number(id) : Number(projectId),
-    });
+      await createTask({
+        title,
+        description,
+        status,
+        priority,
+        tags,
+        startDate: formattedStartDate,
+        dueDate: formattedDueDate,
+        authorUserId: parseInt(authorUserId),
+        assignedUserId: assignedUserId ? parseInt(assignedUserId) : undefined,
+        projectId: id !== null ? Number(id) : Number(projectId),
+      }).unwrap();
+
+      // Close modal and reset form after successful creation
+      onClose();
+      setTitle("");
+      setDescription("");
+      setStatus(Status.ToDo);
+      setPriority(Priority.Backlog);
+      setTags("");
+      setStartDate("");
+      setDueDate("");
+      setAuthorUserId("");
+      setAssignedUserId("");
+      setProjectId("");
+    } catch (error) {
+      console.error("Error creating task:", error);
+      // Modal stays open on error so user can fix and retry
+    }
   };
 
   const isFormValid = () => {
-    return title && authorUserId && !(id !== null || projectId);
+    return title && authorUserId && (id !== null || projectId);
   };
 
   const selectStyles =
-    "mb-4 block w-full rounded border border-gray-300 px-3 py-2 dark:border-dark-tertiary dark:bg-dark-tertiary dark:text-white dark:focus:outline-none";
+    "mb-4 block w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-500 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-blue-500";
 
   const inputStyles =
-    "w-full rounded border border-gray-300 p-2 shadow-sm dark:border-dark-tertiary dark:bg-dark-tertiary dark:text-white dark:focus:outline-none";
+    "w-full rounded border border-gray-300 bg-white p-2 text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500";
+
+  const textareaStyles =
+    "w-full rounded border border-gray-300 bg-white p-2 text-gray-900 shadow-sm placeholder:text-gray-400 resize-y min-h-[100px] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500";
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} name="Create New Task">
-      <form
-        className="mt-4 space-y-6"
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit();
-        }}
-      >
+    <>
+      <style>{`
+        select option {
+          background-color: white;
+          color: #111827;
+        }
+        .dark select option {
+          background-color: #374151;
+          color: white;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+          cursor: pointer;
+          opacity: 0.6;
+        }
+        .dark input[type="date"]::-webkit-calendar-picker-indicator {
+          filter: invert(1);
+          opacity: 0.8;
+        }
+      `}</style>
+      <Modal isOpen={isOpen} onClose={onClose} name="Create New Task">
+        <form
+          className="mt-4 space-y-6"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
+        >
         <input
           type="text"
           className={inputStyles}
@@ -73,10 +117,11 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
           onChange={(e) => setTitle(e.target.value)}
         />
         <textarea
-          className={inputStyles}
+          className={textareaStyles}
           placeholder="Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          rows={4}
         />
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-2">
           <select
@@ -152,17 +197,29 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
             onChange={(e) => setProjectId(e.target.value)}
           />
         )}
-        <button
-          type="submit"
-          className={`focus-offset-2 mt-4 flex w-full justify-center rounded-md border border-transparent bg-blue-primary px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600 ${
-            !isFormValid() || isLoading ? "cursor-not-allowed opacity-50" : ""
-          }`}
-          disabled={!isFormValid() || isLoading}
-        >
-          {isLoading ? "Creating..." : "Create Task"}
-        </button>
+        <div className="mt-6 flex gap-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-base font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className={`flex-1 rounded-md border border-transparent px-4 py-2.5 text-base font-semibold text-white shadow-md transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 dark:focus:ring-blue-400 dark:focus:ring-offset-gray-800 ${
+              !isFormValid() || isLoading
+                ? "cursor-not-allowed bg-gray-400 text-gray-700 hover:bg-gray-400 hover:shadow-md dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
+                : "bg-blue-600 hover:bg-blue-700 active:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-500 dark:active:bg-blue-400 dark:shadow-blue-900/50"
+            }`}
+            disabled={!isFormValid() || isLoading}
+          >
+            {isLoading ? "Creating..." : "Create Task"}
+          </button>
+        </div>
       </form>
     </Modal>
+    </>
   );
 };
 

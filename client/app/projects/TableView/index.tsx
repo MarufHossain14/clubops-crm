@@ -1,9 +1,10 @@
 import { useAppSelector } from "@/app/redux";
 import Header from "@/components/Header";
+import TaskDetailModal from "@/components/TaskDetailModal";
 import { dataGridClassNames, dataGridSxStyles } from "@/lib/utils";
-import { useGetTasksQuery } from "@/state/api";
+import { Task, useGetTasksQuery } from "@/state/api";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import React from "react";
+import React, { useState } from "react";
 
 type Props = {
   id: string;
@@ -67,27 +68,43 @@ const columns: GridColDef[] = [
 
 const TableView = ({ id, setIsModalNewTaskOpen }: Props) => {
   const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
-  const projectId = Number(id);
+  const eventId = Number(id);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false);
+
   const {
     data: tasks,
     error,
     isLoading,
   } = useGetTasksQuery(
-    { projectId },
-    { skip: isNaN(projectId) || projectId <= 0 }
+    { eventId },
+    { skip: isNaN(eventId) || eventId <= 0 }
   );
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center p-4">
+        <div className="text-lg text-gray-600 dark:text-gray-400">Loading tasks...</div>
+      </div>
+    );
+  }
   if (error || !tasks) {
     console.error("Error fetching tasks:", error);
     return (
-      <div className="p-4 text-red-500">
-        <p>An error occurred while fetching tasks</p>
-        <p className="text-sm mt-2">
-          {"status" in error ? `Status: ${error.status}` : ""}
-          {"data" in error && error.data ? JSON.stringify(error.data) : ""}
-          {"error" in error ? String(error.error) : ""}
+      <div className="p-4">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-900/20">
+          <h3 className="mb-2 font-semibold text-red-800 dark:text-red-400">
+            Error fetching tasks
+          </h3>
+          <p className="text-sm text-red-600 dark:text-red-500">
+            {"status" in error && error ? `Status: ${error.status}` : "An error occurred while fetching tasks"}
+          </p>
+          {error && "data" in error && error.data && (
+            <p className="mt-2 text-xs text-red-600 dark:text-red-500">
+              {typeof error.data === "string" ? error.data : JSON.stringify(error.data)}
         </p>
+          )}
+        </div>
       </div>
     );
   }
@@ -113,6 +130,19 @@ const TableView = ({ id, setIsModalNewTaskOpen }: Props) => {
         columns={columns}
         className={dataGridClassNames}
         sx={dataGridSxStyles(isDarkMode)}
+        onRowClick={(params) => {
+          setSelectedTask(params.row as Task);
+          setIsTaskDetailOpen(true);
+        }}
+        getRowClassName={() => "cursor-pointer"}
+      />
+      <TaskDetailModal
+        task={selectedTask}
+        isOpen={isTaskDetailOpen}
+        onClose={() => {
+          setIsTaskDetailOpen(false);
+          setSelectedTask(null);
+        }}
       />
     </div>
   );
